@@ -18,28 +18,205 @@
         animation: blinkCursor 0.75s step-end infinite;
         display: inline-block;
     }
+
+    /* Ambient Hero Background Animations */
+    @keyframes floatBlob1 {
+        0% { transform: translate(0px, 0px) scale(1); }
+        50% { transform: translate(25px, 20px) scale(1.05); }
+        100% { transform: translate(-15px, -10px) scale(0.95); }
+    }
+
+    @keyframes floatBlob2 {
+        0% { transform: translate(0px, 0px) scale(1); }
+        50% { transform: translate(-30px, 25px) scale(1.08); }
+        100% { transform: translate(20px, -15px) scale(0.96); }
+    }
+
+    @keyframes floatBlob3 {
+        0% { transform: translate(0px, 0px) scale(1); }
+        50% { transform: translate(20px, -25px) scale(1.04); }
+        100% { transform: translate(-25px, 15px) scale(0.98); }
+    }
+
+    @keyframes pulseNode {
+        0%, 100% { opacity: 0.18; transform: scale(1); }
+        50% { opacity: 0.45; transform: scale(1.25); }
+    }
+
+    @keyframes floatParticle {
+        0% { transform: translateY(0px); opacity: 0.2; }
+        50% { transform: translateY(-12px); opacity: 0.5; }
+        100% { transform: translateY(0px); opacity: 0.2; }
+    }
+
+    .hero-section-wrapper {
+        position: relative;
+        overflow: hidden;
+        background-color: var(--background);
+        background-image: radial-gradient(rgba(148, 163, 184, 0.12) 1.5px, transparent 1.5px);
+        background-size: 28px 28px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 2rem;
+    }
+
+    .hero-blob-1 {
+        position: absolute;
+        top: -120px;
+        left: -120px;
+        width: 480px;
+        height: 480px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, rgba(147, 51, 234, 0.07) 55%, transparent 70%);
+        filter: blur(70px);
+        border-radius: 50%;
+        animation: floatBlob1 22s ease-in-out infinite alternate;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .hero-blob-2 {
+        position: absolute;
+        top: 5%;
+        right: -140px;
+        width: 520px;
+        height: 520px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.11) 0%, rgba(168, 85, 247, 0.06) 55%, transparent 70%);
+        filter: blur(80px);
+        border-radius: 50%;
+        animation: floatBlob2 26s ease-in-out infinite alternate;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .hero-blob-3 {
+        position: absolute;
+        bottom: -60px;
+        left: 25%;
+        width: 420px;
+        height: 420px;
+        background: radial-gradient(circle, rgba(37, 99, 235, 0.09) 0%, rgba(59, 130, 246, 0.04) 55%, transparent 70%);
+        filter: blur(65px);
+        border-radius: 50%;
+        animation: floatBlob3 20s ease-in-out infinite alternate;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .hero-preview-card {
+        width: 100%;
+        max-width: 800px;
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(226, 232, 240, 0.85);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08);
+        opacity: 0.65;
+        transform: perspective(1000px) rotateX(3deg) scale(0.98);
+        mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 100%);
+        -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 100%);
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    @media (max-width: 992px) {
+        .hero-blob-1, .hero-blob-2 { width: 320px; height: 320px; filter: blur(50px); }
+        .hero-preview-card { opacity: 0.45; transform: scale(0.95); }
+    }
+
+    @media (max-width: 768px) {
+        .hero-blob-3 { display: none; }
+        .hero-preview-card { display: none; }
+    }
 </style>
 
-<div style="text-align: center; padding: 4rem 1rem 3.5rem 1rem; max-width: 950px; margin: 0 auto;">
-    <span class="badge badge-primary" style="font-size: 0.9rem; margin-bottom: 1.5rem; padding: 0.4rem 1rem; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);">Portfolio-Grade AI SaaS Platform</span>
-    
-    <h1 style="font-size: 3.25rem; font-weight: 800; color: var(--secondary); margin-bottom: 1.25rem; line-height: 1.25; letter-spacing: -0.02em;">
-        Make Your Resume Job-Ready with <br>
-        <span id="hero-typewriter" class="typewriter-text">Explainable AI</span>
-    </h1>
+<!-- Hero Container Wrapper with Ambient Background -->
+<div class="hero-section-wrapper">
+    <!-- Ambient Gradient Blobs -->
+    <div class="hero-blob-1"></div>
+    <div class="hero-blob-2"></div>
+    <div class="hero-blob-3"></div>
 
-    <p style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 2.5rem; line-height: 1.6; max-width: 800px; margin-left: auto; margin-right: auto;">
-        Analyze your resume PDF, extract technical & soft skills, detect missing sections, calculate TF-IDF job description compatibility, and unlock a personalized 10-week learning roadmap.
-    </p>
+    <!-- Neural Network Nodes & Faint Connecting Lines (SVG Overlay) -->
+    <svg style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; opacity: 0.55;" xmlns="http://www.w3.org/2000/svg">
+        <!-- Connecting Faint Lines -->
+        <line x1="12%" y1="20%" x2="28%" y2="42%" stroke="rgba(99, 102, 241, 0.15)" stroke-dasharray="4 4" stroke-width="1.2"/>
+        <line x1="28%" y1="42%" x2="45%" y2="18%" stroke="rgba(37, 99, 235, 0.12)" stroke-width="1"/>
+        <line x1="72%" y1="25%" x2="88%" y2="48%" stroke="rgba(99, 102, 241, 0.15)" stroke-dasharray="4 4" stroke-width="1.2"/>
+        <line x1="88%" y1="48%" x2="78%" y2="75%" stroke="rgba(59, 130, 246, 0.12)" stroke-width="1"/>
+        
+        <!-- Neural Nodes with Subtle Pulse -->
+        <circle cx="12%" cy="20%" r="5" fill="#3b82f6" style="animation: pulseNode 5s ease-in-out infinite alternate;"/>
+        <circle cx="28%" cy="42%" r="4" fill="#6366f1" style="animation: pulseNode 4s ease-in-out infinite alternate 1s;"/>
+        <circle cx="45%" cy="18%" r="4.5" fill="#2563eb" style="animation: pulseNode 6s ease-in-out infinite alternate 2s;"/>
+        <circle cx="72%" cy="25%" r="5" fill="#6366f1" style="animation: pulseNode 4.5s ease-in-out infinite alternate 0.5s;"/>
+        <circle cx="88%" cy="48%" r="4" fill="#3b82f6" style="animation: pulseNode 5.5s ease-in-out infinite alternate 1.5s;"/>
+        <circle cx="78%" cy="75%" r="4.5" fill="#2563eb" style="animation: pulseNode 4s ease-in-out infinite alternate 2.5s;"/>
 
-    <div class="hero-buttons" style="display: flex; justify-content: center; gap: 1.25rem;">
-        {% if session.get('user_id') %}
-            <a href="{{ url_for('upload') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.9rem 2.25rem;">Analyze My Resume</a>
-            <a href="{{ url_for('job_matcher') }}" class="btn btn-secondary" style="font-size: 1.1rem; padding: 0.9rem 2.25rem;">Try Job Matcher</a>
-        {% else %}
-            <a href="{{ url_for('register') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.9rem 2.25rem;">Get Started Free</a>
-            <a href="{{ url_for('login') }}" class="btn btn-secondary" style="font-size: 1.1rem; padding: 0.9rem 2.25rem;">Sign In</a>
-        {% endif %}
+        <!-- Tiny Low-Opacity Particles -->
+        <circle cx="18%" cy="65%" r="2.5" fill="#3b82f6" opacity="0.3" style="animation: floatParticle 7s ease-in-out infinite;"/>
+        <circle cx="35%" cy="80%" r="2" fill="#6366f1" opacity="0.25" style="animation: floatParticle 9s ease-in-out infinite 1s;"/>
+        <circle cx="62%" cy="15%" r="3" fill="#2563eb" opacity="0.35" style="animation: floatParticle 8s ease-in-out infinite 2s;"/>
+        <circle cx="82%" cy="82%" r="2" fill="#3b82f6" opacity="0.3" style="animation: floatParticle 6s ease-in-out infinite 0.5s;"/>
+    </svg>
+
+    <!-- Main Hero Content Area -->
+    <div style="position: relative; z-index: 10; text-align: center; padding: 4rem 1rem 1.5rem 1rem; max-width: 950px; margin: 0 auto;">
+        <span class="badge badge-primary" style="font-size: 0.9rem; margin-bottom: 1.5rem; padding: 0.4rem 1rem; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);">Portfolio-Grade AI SaaS Platform</span>
+        
+        <h1 style="font-size: 3.25rem; font-weight: 800; color: var(--secondary); margin-bottom: 1.25rem; line-height: 1.25; letter-spacing: -0.02em;">
+            Make Your Resume Job-Ready with <br>
+            <span id="hero-typewriter" class="typewriter-text">Explainable AI</span>
+        </h1>
+
+        <p style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 2.5rem; line-height: 1.6; max-width: 800px; margin-left: auto; margin-right: auto;">
+            Analyze your resume PDF, extract technical & soft skills, detect missing sections, calculate TF-IDF job description compatibility, and unlock a personalized 10-week learning roadmap.
+        </p>
+
+        <div class="hero-buttons" style="display: flex; justify-content: center; gap: 1.25rem;">
+            {% if session.get('user_id') %}
+                <a href="{{ url_for('upload') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.9rem 2.25rem;">Analyze My Resume</a>
+                <a href="{{ url_for('job_matcher') }}" class="btn btn-secondary" style="font-size: 1.1rem; padding: 0.9rem 2.25rem;">Try Job Matcher</a>
+            {% else %}
+                <a href="{{ url_for('register') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.9rem 2.25rem;">Get Started Free</a>
+                <a href="{{ url_for('login') }}" class="btn btn-secondary" style="font-size: 1.1rem; padding: 0.9rem 2.25rem;">Sign In</a>
+            {% endif %}
+        </div>
+
+        <!-- Product Preview: Emerging Softly Towards Lower Hero Background -->
+        <div class="hero-preview-wrapper" style="margin-top: 3rem; position: relative; z-index: 2; display: flex; justify-content: center;">
+            <div class="hero-preview-card">
+                <!-- Header mockup bar -->
+                <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 0.75rem; border-bottom: 1px solid #e2e8f0; margin-bottom: 0.85rem;">
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <div style="width: 9px; height: 9px; border-radius: 50%; background: #ef4444; opacity: 0.7;"></div>
+                        <div style="width: 9px; height: 9px; border-radius: 50%; background: #f59e0b; opacity: 0.7;"></div>
+                        <div style="width: 9px; height: 9px; border-radius: 50%; background: #10b981; opacity: 0.7;"></div>
+                        <span style="font-size: 0.75rem; color: #64748b; font-weight: 700; margin-left: 0.5rem; letter-spacing: 0.02em;">ResumeAI Live Analysis Overview</span>
+                    </div>
+                    <span style="font-size: 0.7rem; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 0.15rem 0.5rem; border-radius: 9999px; font-weight: 700;">Status: Analyzed</span>
+                </div>
+                <!-- Mini Metrics Grid -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1.6fr; gap: 0.85rem; text-align: left;">
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <div style="font-size: 0.68rem; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 0.2rem; letter-spacing: 0.04em;">Resume Score</div>
+                        <div style="font-size: 1.45rem; font-weight: 800; color: #059669; display: flex; align-items: baseline; gap: 0.2rem;">87<span style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">/100</span></div>
+                    </div>
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <div style="font-size: 0.68rem; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 0.2rem; letter-spacing: 0.04em;">Job Match</div>
+                        <div style="font-size: 1.45rem; font-weight: 800; color: #2563eb; display: flex; align-items: baseline; gap: 0.2rem;">91<span style="font-size: 0.8rem; color: #2563eb; font-weight: 600;">%</span></div>
+                    </div>
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <div style="font-size: 0.68rem; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 0.3rem; letter-spacing: 0.04em;">Extracted Skills</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.3rem;">
+                            <span style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.78rem; padding: 0.15rem 0.5rem; border-radius: 6px; font-weight: 700;">Python</span>
+                            <span style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.78rem; padding: 0.15rem 0.5rem; border-radius: 6px; font-weight: 700;">Flask</span>
+                            <span style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.78rem; padding: 0.15rem 0.5rem; border-radius: 6px; font-weight: 700;">SQL</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
