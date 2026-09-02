@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}About & V2 Architecture — ResumeAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <span class="badge badge-primary" style="font-size: 0.9rem; padding: 0.4rem 1rem; margin-bottom: 1rem;">V2 Production AI SaaS Platform</span>
+        <h1 style="font-size: 2.5rem; font-weight: 800; color: var(--secondary); margin-bottom: 1rem;">
+            ResumeAI V2 Architecture & Viva Reference
+        </h1>
+        <p style="font-size: 1.15rem; color: var(--text-muted); line-height: 1.6;">
+            A complete technical reference for B.Tech Computer Science (AI) Viva voce examinations and portfolio evaluations.
+        </p>
+    </div>
+
+    <!-- 1. System Architecture -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.5rem; color: var(--secondary); margin-bottom: 1rem;">1. Hybrid Architecture Overview</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1rem;">
+            ResumeAI V2 combines statistical TF-IDF text mining with deep semantic transformer embeddings, structured database persistence, and production security middleware.
+        </p>
+        <div style="background-color: var(--background); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border); font-family: monospace; font-size: 0.88rem; line-height: 1.5;">
+            [User Upload / Resume Builder] &rarr; [PDF Parser & Security Header Check]<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&downarrow;<br>
+            [TF-IDF Engine 25%] + [Sentence-Transformers 35%] + [Skill Match 30%] + [Keywords 10%]<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&downarrow;<br>
+            [Hybrid Match Score %] &rarr; [AI Interview Prep] &rarr; [Targeted Optimization] &rarr; [ReportLab PDF Export]
+        </div>
+    </div>
+
+    <!-- 2. Hybrid Matching Algorithm Formula -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.5rem; color: var(--secondary); margin-bottom: 1rem;">2. Hybrid AI Job Match Formula</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1rem;">
+            To eliminate single-algorithm bias, candidate resumes and job postings are evaluated using four mathematical components:
+        </p>
+        <table class="recent-activity-table">
+            <thead>
+                <tr>
+                    <th>Component</th>
+                    <th>Weight</th>
+                    <th>Technical Implementation</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Semantic Vector Similarity</td><td>35%</td><td>Cosine similarity of 384-dimensional dense vectors using <code>sentence-transformers (all-MiniLM-L6-v2)</code></td></tr>
+                <tr><td>Skill Match Rate</td><td>30%</td><td>Categorized skill set overlap ratio across 11 skill categories</td></tr>
+                <tr><td>TF-IDF Text Match</td><td>25%</td><td>Unigram/Bigram sparse matrix cosine similarity via <code>scikit-learn TfidfVectorizer</code></td></tr>
+                <tr><td>Keyword Coverage</td><td>10%</td><td>Audit of top 15 extracted job posting terms present in resume text</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 3. Security Hardening -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.5rem; color: var(--secondary); margin-bottom: 1rem;">3. Production Security & Infrastructure</h2>
+        <ul class="feedback-list">
+            <li>
+                <strong>CSRF Protection:</strong>
+                <span>All state-changing POST forms are protected via <code>Flask-WTF (CSRFProtect)</code>.</span>
+            </li>
+            <li>
+                <strong>Rate Limiting:</strong>
+                <span>Endpoint rate limits enforced via <code>Flask-Limiter</code> to prevent brute-force attacks and server overload.</span>
+            </li>
+            <li>
+                <strong>PDF Header Security:</strong>
+                <span>Uploads are validated for <code>%PDF-</code> magic byte headers to prevent malicious file uploads.</span>
+            </li>
+            <li>
+                <strong>Authorization Security:</strong>
+                <span>Strict owner verification ensures users can only access their own resumes, analyses, and versions.</span>
+            </li>
+            <li>
+                <strong>Cloud & Docker Ready:</strong>
+                <span>Includes <code>Dockerfile</code>, <code>docker-compose.yml</code>, <code>Gunicorn</code> WSGI server, and dynamic <code>PostgreSQL</code> database support.</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- 4. Viva Q&A -->
+    <div class="card">
+        <h2 style="font-size: 1.5rem; color: var(--secondary); margin-bottom: 1rem;">4. Key Viva Questions & Answers</h2>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <strong style="color: var(--secondary); font-size: 1rem;">Q1: Why combine TF-IDF with Sentence Transformers in a Hybrid approach?</strong>
+            <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 0.3rem;">
+                <em>Answer:</em> TF-IDF excels at exact technical keyword matching (e.g. <code>c++</code>, <code>sqlite</code>), whereas Sentence Transformers capture deep semantic context (e.g. recognizing that <em>"built microservices"</em> aligns semantically with <em>"backend REST architecture"</em>). Combining both yields superior matching accuracy.
+            </p>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <strong style="color: var(--secondary); font-size: 1rem;">Q2: How does the PDF Exporter work without JavaScript?</strong>
+            <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 0.3rem;">
+                <em>Answer:</em> It uses Python's <code>ReportLab</code> library to construct vector PDF canvas elements and paragraph styles directly on the server, generating high-quality selectable PDF bytes streamable to the client browser.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

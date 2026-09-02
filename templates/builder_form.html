@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}{% if version %}Edit Resume Version{% else %}New Resume Version{% endif %} — ResumeAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 950px; margin: 0 auto;">
+    <div class="dashboard-header">
+        <div>
+            <h1>{% if version %}Edit Resume Version: {{ version.version_name }}{% else %}Create New Resume Version{% endif %}</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Fill only the sections you want to display on your ATS resume.</p>
+        </div>
+    </div>
+
+    <form action="{% if version %}{{ url_for('builder_edit', version_id=version.id) }}{% else %}{{ url_for('builder_new') }}{% endif %}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <!-- Version & Template Settings -->
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Version & Template Settings</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="version_name" class="form-label">Resume Version Name *</label>
+                    <input type="text" id="version_name" name="version_name" class="form-input" placeholder="e.g. Software Engineer Resume v1" value="{{ version.version_name if version else '' }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="target_role" class="form-label">Target Job Role *</label>
+                    <select id="target_role" name="target_role" class="form-input">
+                        {% for r_name in roles_list %}
+                            <option value="{{ r_name }}" {% if version and version.target_role == r_name %}selected{% endif %}>{{ r_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="template_name" class="form-label">ATS PDF Template Theme</label>
+                <select id="template_name" name="template_name" class="form-input">
+                    <option value="ats_classic" {% if version and version.template_name == 'ats_classic' %}selected{% endif %}>Elite ATS Standard (Centered Header, Underline Rules, GitHub/Demo Links)</option>
+                    <option value="modern_pro" {% if version and version.template_name == 'modern_pro' %}selected{% endif %}>Modern Professional (Blue Accent Headers)</option>
+                    <option value="software_engineer" {% if version and version.template_name == 'software_engineer' %}selected{% endif %}>Software Engineer (Technical Focus)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        {% set c_info = parsed.contact_info if (parsed and parsed.contact_info is mapping) else {} %}
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Header & Contact Information</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="contact_name" class="form-label">Full Name *</label>
+                    <input type="text" id="contact_name" name="contact_name" class="form-input" placeholder="e.g. John Doe" value="{{ c_info.get('name') or (user.name if user is defined and user else '') }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact_location" class="form-label">Location (City, State, Zip)</label>
+                    <input type="text" id="contact_location" name="contact_location" class="form-input" placeholder="e.g. New York, NY, 10001" value="{{ c_info.get('location') or '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="contact_phone" class="form-label">Phone Number</label>
+                    <input type="text" id="contact_phone" name="contact_phone" class="form-input" placeholder="e.g. +1 555-0199" value="{{ c_info.get('phone') or '' }}">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="contact_email" class="form-label">Email</label>
+                    <input type="email" id="contact_email" name="contact_email" class="form-input" placeholder="candidate@example.com" value="{{ c_info.get('email') or (user.email if user is defined and user else '') }}">
+                </div>
+                <div class="form-group">
+                    <label for="contact_linkedin" class="form-label">LinkedIn URL</label>
+                    <input type="text" id="contact_linkedin" name="contact_linkedin" class="form-input" placeholder="linkedin.com/in/username" value="{{ c_info.get('linkedin') or '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="contact_github" class="form-label">GitHub URL</label>
+                    <input type="text" id="contact_github" name="contact_github" class="form-input" placeholder="github.com/username" value="{{ c_info.get('github') or '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="contact_portfolio" class="form-label">Portfolio URL</label>
+                    <input type="text" id="contact_portfolio" name="contact_portfolio" class="form-input" placeholder="portfolio.dev" value="{{ c_info.get('portfolio') or '' }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Objective / Summary -->
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Career Objective (Optional)</h3>
+            <div class="form-group">
+                <textarea name="summary" rows="3" class="form-input" placeholder="Write a 2-3 sentence overview highlighting your core engineering skills and academic background...">{{ parsed.get('summary', '') if parsed is mapping else '' }}</textarea>
+            </div>
+        </div>
+
+        <!-- Technical Skills (Categorized Grid) -->
+        {% set s_dict = parsed.skills if (parsed and parsed.skills is mapping) else {} %}
+        {% set lang_val = s_dict.get('Languages') or s_dict.get('Programming') or '' %}
+        {% set front_val = s_dict.get('Frontend Development') or s_dict.get('Web') or '' %}
+        {% set back_val = s_dict.get('Backend Frameworks') or '' %}
+        {% set db_val = s_dict.get('Databases & Cloud') or s_dict.get('Database') or '' %}
+        {% set tool_val = s_dict.get('Developer Tools') or s_dict.get('Tools') or '' %}
+        {% set cs_val = s_dict.get('Core Computer Science') or '' %}
+
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Categorized Technical Skills (Optional)</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Languages</label>
+                    <input type="text" name="skill_languages" class="form-input" placeholder="e.g. Java, Python, JavaScript, C++, SQL" value="{{ lang_val|join(', ') if (lang_val is sequence and lang_val is not string) else lang_val }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Frontend Development</label>
+                    <input type="text" name="skill_frontend" class="form-input" placeholder="e.g. HTML5, CSS3, React.js" value="{{ front_val|join(', ') if (front_val is sequence and front_val is not string) else front_val }}">
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Backend Frameworks</label>
+                    <input type="text" name="skill_backend" class="form-input" placeholder="e.g. Node.js, Express.js, Django, Flask" value="{{ back_val|join(', ') if (back_val is sequence and back_val is not string) else back_val }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Databases & Cloud</label>
+                    <input type="text" name="skill_database" class="form-input" placeholder="e.g. MongoDB, PostgreSQL, MySQL, SQLite, AWS" value="{{ db_val|join(', ') if (db_val is sequence and db_val is not string) else db_val }}">
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Developer Tools</label>
+                    <input type="text" name="skill_tools" class="form-input" placeholder="e.g. Git, GitHub, VS Code, Postman, Docker" value="{{ tool_val|join(', ') if (tool_val is sequence and tool_val is not string) else tool_val }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Core Computer Science</label>
+                    <input type="text" name="skill_cs" class="form-input" placeholder="e.g. DSA, DBMS, OOPs, OS, Computer Networks" value="{{ cs_val|join(', ') if (cs_val is sequence and cs_val is not string) else cs_val }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Experience -->
+        {% set exp_0 = (parsed.experience[0] if (parsed and parsed.experience is sequence and parsed.experience|length > 0 and parsed.experience[0] is mapping) else {}) %}
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Work Experience / Internship (Optional)</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Role Title</label>
+                    <input type="text" name="exp1_title" class="form-input" placeholder="e.g. Full Stack Developer Intern" value="{{ exp_0.get('title', '') }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Company / Organization</label>
+                    <input type="text" name="exp1_company" class="form-input" placeholder="e.g. TechCorp Solutions" value="{{ exp_0.get('company', '') }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Dates</label>
+                    <input type="text" name="exp1_dates" class="form-input" placeholder="e.g. Jun 2026 – Aug 2026" value="{{ exp_0.get('dates', '') }}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Bullet Points & Key Achievements</label>
+                <textarea name="exp1_desc" rows="3" class="form-input" placeholder="• Developed web applications using React.js and Node.js.&#10;• Resolved bugs and improved latency by 25%.">{{ exp_0.get('description', '') }}</textarea>
+            </div>
+        </div>
+
+        <!-- Technical Project 1 -->
+        {% set proj_0 = (parsed.projects[0] if (parsed and parsed.projects is sequence and parsed.projects|length > 0 and parsed.projects[0] is mapping) else {}) %}
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem; border-left: 4px solid var(--primary);">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Technical Project 1</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Project Name *</label>
+                    <input type="text" name="proj1_title" class="form-input" placeholder="e.g. AI Resume Analyzer" value="{{ proj_0.get('title', '') }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Subtitle / Tech Stack *</label>
+                    <input type="text" name="proj1_tech" class="form-input" placeholder="e.g. Full Stack (Python + Flask + scikit-learn)" value="{{ proj_0.get('tech_stack', '') }}" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">GitHub Repository Link (Optional)</label>
+                    <input type="text" name="proj1_github" class="form-input" placeholder="e.g. https://github.com/username/project" value="{{ proj_0.get('github_url', '') }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Live Demo Deployment Link (Optional)</label>
+                    <input type="text" name="proj1_demo" class="form-input" placeholder="e.g. https://myproject.vercel.app" value="{{ proj_0.get('live_demo_url', '') }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description & Bullet Points</label>
+                <textarea name="proj1_desc" rows="3" class="form-input" placeholder="• Built a full-stack AI web application.&#10;• Implemented TF-IDF and Cosine similarity algorithms.">{{ proj_0.get('description', '') }}</textarea>
+            </div>
+        </div>
+
+        <!-- Technical Project 2 -->
+        {% set proj_1 = (parsed.projects[1] if (parsed and parsed.projects is sequence and parsed.projects|length > 1 and parsed.projects[1] is mapping) else {}) %}
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem; border-left: 4px solid var(--primary);">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Technical Project 2 (Optional)</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Project Name</label>
+                    <input type="text" name="proj2_title" class="form-input" placeholder="e.g. E-Commerce Microservice Platform" value="{{ proj_1.get('title', '') }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Subtitle / Tech Stack</label>
+                    <input type="text" name="proj2_tech" class="form-input" placeholder="e.g. Python & Django" value="{{ proj_1.get('tech_stack', '') }}">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">GitHub Repository Link (Optional)</label>
+                    <input type="text" name="proj2_github" class="form-input" placeholder="e.g. https://github.com/username/project2" value="{{ proj_1.get('github_url', '') }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Live Demo Deployment Link (Optional)</label>
+                    <input type="text" name="proj2_demo" class="form-input" placeholder="e.g. https://project2.vercel.app" value="{{ proj_1.get('live_demo_url', '') }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description & Bullet Points</label>
+                <textarea name="proj2_desc" rows="3" class="form-input" placeholder="• Built secure REST APIs and PostgreSQL database integration.">{{ proj_1.get('description', '') }}</textarea>
+            </div>
+        </div>
+
+        <!-- Education -->
+        {% set edu_0 = (parsed.education[0] if (parsed and parsed.education is sequence and parsed.education|length > 0 and parsed.education[0] is mapping) else {}) %}
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Education</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Degree *</label>
+                    <input type="text" name="edu1_degree" class="form-input" placeholder="e.g. Bachelor of Technology – Computer Science" value="{{ edu_0.get('degree', '') }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Institution Name *</label>
+                    <input type="text" name="edu1_inst" class="form-input" placeholder="e.g. Institute of Technology" value="{{ edu_0.get('institution', '') }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Years</label>
+                    <input type="text" name="edu1_year" class="form-input" placeholder="e.g. 2023 – 2027" value="{{ edu_0.get('year', '') }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Certifications -->
+        {% set cert_0 = (parsed.certifications[0] if (parsed and parsed.certifications is sequence and parsed.certifications|length > 0 and parsed.certifications[0] is mapping) else {}) %}
+        {% set cert_1 = (parsed.certifications[1] if (parsed and parsed.certifications is sequence and parsed.certifications|length > 1 and parsed.certifications[1] is mapping) else {}) %}
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Certifications (Optional)</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Certification 1 Title</label>
+                    <input type="text" name="cert1_name" class="form-input" placeholder="e.g. AWS Certified Solutions Architect" value="{{ cert_0.get('name', '') if cert_0 else (parsed.certifications[0] if (parsed and parsed.certifications is sequence and parsed.certifications|length > 0 and parsed.certifications[0] is string) else '') }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="text" name="cert1_date" class="form-input" placeholder="e.g. Sep 2025" value="{{ cert_0.get('date', '') if cert_0 else '' }}">
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Certification 2 Title</label>
+                    <input type="text" name="cert2_name" class="form-input" placeholder="e.g. Meta Front-End Developer Certificate" value="{{ cert_1.get('name', '') if cert_1 else (parsed.certifications[1] if (parsed and parsed.certifications is sequence and parsed.certifications|length > 1 and parsed.certifications[1] is string) else '') }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="text" name="cert2_date" class="form-input" placeholder="e.g. Oct 2025" value="{{ cert_1.get('date', '') if cert_1 else '' }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievements -->
+        {% set ach_val = parsed.achievements if (parsed and parsed.achievements is sequence and parsed.achievements is not string) else [] %}
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Key Achievements (Optional - One Per Line)</h3>
+            <div class="form-group">
+                <textarea name="achievements" rows="3" class="form-input" placeholder="Problem Solving: Solved 150+ coding problems on LeetCode.&#10;Git & GitHub: Maintained multiple open-source projects.">{{ ach_val|join('\n') }}</textarea>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.9rem; font-size: 1.1rem; margin-bottom: 2rem;">
+            💾 Save & Render Resume
+        </button>
+    </form>
+</div>
+{% endblock %}

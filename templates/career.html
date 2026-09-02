@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Career Role Recommendations — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Top Career Matches</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Evaluated across 9 standard technology roles based on your extracted resume skills.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('skill_gap', analysis_id=analysis_id) }}" class="btn btn-primary">Skill Gap Analysis &rarr;</a>
+    </div>
+</div>
+
+<!-- Navigation Tabs -->
+<div style="display: flex; gap: 0.5rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+    <a href="{{ url_for('analysis_detail', analysis_id=analysis_id) }}" class="btn btn-secondary">Resume Score & Skills</a>
+    <a href="{{ url_for('career_recommendation', analysis_id=analysis_id) }}" class="btn btn-secondary" style="border-bottom: 3px solid var(--primary); font-weight: 700;">Career Recommendations</a>
+    <a href="{{ url_for('skill_gap', analysis_id=analysis_id) }}" class="btn btn-secondary">Skill Gap Analysis</a>
+    <a href="{{ url_for('roadmap', analysis_id=analysis_id) }}" class="btn btn-secondary">10-Week Roadmap</a>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+    {% for role in career_data.ranked_roles %}
+        <div class="card" style="display: grid; grid-template-columns: 200px 1fr; gap: 2rem; align-items: center;">
+            <div style="text-align: center; border-right: 1px solid var(--border); padding-right: 1.5rem;">
+                <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary);">{{ role.match_score }}%</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Compatibility</div>
+                <div class="progress-bar-container" style="margin-top: 0.5rem;">
+                    <div class="progress-bar-fill {% if role.match_score >= 80 %}success{% elif role.match_score >= 60 %}{% else %}danger{% endif %}" style="width: {{ role.match_score }}%;"></div>
+                </div>
+            </div>
+
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                    <h3 style="font-size: 1.3rem; color: var(--secondary);">{{ role.role }}</h3>
+                    <a href="{{ url_for('skill_gap', analysis_id=analysis_id, target_role=role.role) }}" class="btn btn-outline" style="padding: 0.35rem 0.8rem; font-size: 0.82rem;">Analyze Skill Gap</a>
+                </div>
+
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">{{ role.description }}</p>
+
+                <!-- Why this role box -->
+                <div style="background-color: var(--background); border: 1px solid var(--border); padding: 0.9rem 1.1rem; border-radius: var(--radius-md); font-size: 0.88rem; margin-bottom: 1rem;">
+                    <strong style="color: var(--secondary);">Why {{ role.role }}?</strong>
+                    <p style="color: var(--text-main); margin-top: 0.2rem;">{{ role.why_explanation }}</p>
+                </div>
+
+                <div style="display: flex; gap: 1.5rem; font-size: 0.85rem;">
+                    <div>
+                        <strong style="color: var(--success);">Matched Skills:</strong>
+                        <span style="color: var(--text-muted);">{% if role.matched_skills %}{{ role.matched_skills|join(', ') }}{% else %}None{% endif %}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

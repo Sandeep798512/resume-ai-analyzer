@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Resume Analysis Report — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Resume Analysis Report</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">File: <strong>{{ analysis.resume_filename }}</strong> | Analyzed on {{ analysis.created_at[:10] }}</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <a href="{{ url_for('job_matcher') }}" class="btn btn-primary">Match with Job Description &rarr;</a>
+        <a href="{{ url_for('career_recommendation', analysis_id=analysis.id) }}" class="btn btn-secondary">Career Fits</a>
+    </div>
+</div>
+
+<!-- Score Overview Banner -->
+<div class="score-overview">
+    <div class="score-circle">
+        <span class="score-num">{{ analysis_data.overall_score }}</span>
+        <span class="score-label">out of 100</span>
+    </div>
+    <div class="score-text">
+        <h2>Resume Compatibility Score</h2>
+        <p>This explainable score evaluates skills density, project metrics, section structure, keyword depth, and contact completeness.</p>
+    </div>
+</div>
+
+<!-- Navigation Tabs (Server-Rendered Links) -->
+<div style="display: flex; gap: 0.5rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+    <a href="{{ url_for('analysis_detail', analysis_id=analysis.id) }}" class="btn btn-secondary" style="border-bottom: 3px solid var(--primary); font-weight: 700;">Resume Score & Skills</a>
+    <a href="{{ url_for('career_recommendation', analysis_id=analysis.id) }}" class="btn btn-secondary">Career Recommendations</a>
+    <a href="{{ url_for('skill_gap', analysis_id=analysis.id) }}" class="btn btn-secondary">Skill Gap Analysis</a>
+    <a href="{{ url_for('roadmap', analysis_id=analysis.id) }}" class="btn btn-secondary">10-Week Roadmap</a>
+</div>
+
+<!-- Main Grid -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+
+    <div>
+        <!-- Section Detection Checklist -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="font-size: 1.2rem; color: var(--secondary); margin-bottom: 1rem;">Detected Resume Sections</h3>
+            <div class="section-checklist">
+                {% for sec_name, sec_info in analysis_data.section_data.sections.items() %}
+                    <div class="section-item {% if sec_info.present %}present{% else %}missing{% endif %}">
+                        <span>{{ sec_name }}</span>
+                        <span>{% if sec_info.present %}✓{% else %}✗{% endif %}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Categorized Skills Detected -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.2rem; color: var(--secondary);">Extracted Skills ({{ analysis_data.skills_data.total_count }} Detected)</h3>
+            </div>
+            
+            {% for cat_name, skill_list in analysis_data.skills_data.categorized.items() %}
+                {% if skill_list %}
+                    <div style="margin-bottom: 1.25rem;">
+                        <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem;">
+                            {{ cat_name }} ({{ skill_list|length }})
+                        </div>
+                        <div class="skill-tags">
+                            {% for skill in skill_list %}
+                                <span class="skill-tag">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Project Quality Evaluation -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="font-size: 1.2rem; color: var(--secondary); margin-bottom: 0.8rem;">Project Quality Evaluation</h3>
+            <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1rem;">
+                Project Score: <strong>{{ analysis_data.project_analysis.score }}/100</strong>
+            </p>
+            <ul class="feedback-list">
+                {% for fb in analysis_data.project_analysis.feedback %}
+                    <li style="color: #065f46;"><span>✓</span> <span>{{ fb }}</span></li>
+                {% endfor %}
+                {% for sug in analysis_data.project_analysis.suggestions %}
+                    <li style="color: #92400e;"><span>⚠</span> <span>{{ sug }}</span></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Right Sidebar: Score Breakdown & Suggestions -->
+    <div>
+        <!-- Factor Breakdown Card -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Score Methodology Breakdown</h3>
+            {% for factor_name, score_val in analysis_data.score_breakdown.items() %}
+                <div style="margin-bottom: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;">
+                        <span>{{ factor_name }}</span>
+                        <span>{{ score_val }} pts</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" style="width: {{ (score_val / 25.0) * 100 }}%;"></div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Contact Information Verification -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Contact Info Audit</h3>
+            <ul class="feedback-list">
+                <li>
+                    <span>Email:</span>
+                    <strong>{% if analysis_data.contact_info.email_found %}✓ {{ analysis_data.contact_info.email }}{% else %}✗ Missing{% endif %}</strong>
+                </li>
+                <li>
+                    <span>Phone:</span>
+                    <strong>{% if analysis_data.contact_info.phone_found %}✓ {{ analysis_data.contact_info.phone }}{% else %}✗ Missing{% endif %}</strong>
+                </li>
+                <li>
+                    <span>GitHub:</span>
+                    <strong>{% if analysis_data.contact_info.github_found %}✓ Detected{% else %}✗ Missing{% endif %}</strong>
+                </li>
+                <li>
+                    <span>LinkedIn:</span>
+                    <strong>{% if analysis_data.contact_info.linkedin_found %}✓ Detected{% else %}✗ Missing{% endif %}</strong>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Resume Improvement Suggestions -->
+        <div class="card">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Actionable Improvements</h3>
+            <ul class="feedback-list">
+                {% for sug in analysis_data.suggestions %}
+                    <li style="color: var(--text-main);">
+                        <span>💡</span>
+                        <span>{{ sug }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

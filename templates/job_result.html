@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Hybrid Job Match Result — {{ match_result.job_title }} — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Hybrid AI Job Match Result</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Target Job Title: <strong>{{ match_result.job_title }}</strong> {% if match_result.company_name %}({{ match_result.company_name }}){% endif %}</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <a href="{{ url_for('interview_prep_view', target_role=match_result.job_title) }}" class="btn btn-primary">Generate Interview Prep &rarr;</a>
+        <a href="{{ url_for('job_matcher') }}" class="btn btn-secondary">Test Another Job</a>
+    </div>
+</div>
+
+<!-- Hybrid Score Overview Banner -->
+<div class="score-overview" style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);">
+    <div class="score-circle" style="border-color: var(--success);">
+        <span class="score-num">{{ match_result.overall_match_score }}%</span>
+        <span class="score-label">Hybrid Match</span>
+    </div>
+    <div class="score-text">
+        <h2>Overall Fit: {{ match_result.recommendation }}</h2>
+        <p>{{ match_result.recommendation_desc }}</p>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+
+    <div>
+        <!-- Matched Skills Card -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="font-size: 1.2rem; color: var(--secondary); margin-bottom: 1rem;">
+                ✓ Matched Skills ({{ match_result.matched_skills_count }})
+            </h3>
+            {% if match_result.matched_skills %}
+                <div class="skill-tags">
+                    {% for skill in match_result.matched_skills %}
+                        <span class="skill-tag" style="background-color: var(--success-light); color: var(--success); border-color: #a7f3d0;">
+                            ✓ {{ skill }}
+                        </span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: var(--text-muted); font-size: 0.9rem;">No direct matching skills found between resume and job description requirements.</p>
+            {% endif %}
+        </div>
+
+        <!-- Prioritized Missing Skills Card -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="font-size: 1.2rem; color: var(--secondary); margin-bottom: 1rem;">
+                ✗ Prioritized Missing Skills
+            </h3>
+
+            <!-- High Priority -->
+            <div class="priority-block priority-high">
+                <div class="priority-title">
+                    <span>Priority: HIGH</span>
+                    <span style="font-size: 0.75rem; font-weight: normal; text-transform: none; color: var(--text-muted);">(Repeated frequently in JD)</span>
+                </div>
+                {% if match_result.missing_skills_prioritized.HIGH %}
+                    <div class="skill-tags">
+                        {% for skill in match_result.missing_skills_prioritized.HIGH %}
+                            <span class="badge badge-danger" style="font-size: 0.85rem;">• {{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">None detected.</p>
+                {% endif %}
+            </div>
+
+            <!-- Medium Priority -->
+            <div class="priority-block priority-medium">
+                <div class="priority-title">
+                    <span>Priority: MEDIUM</span>
+                </div>
+                {% if match_result.missing_skills_prioritized.MEDIUM %}
+                    <div class="skill-tags">
+                        {% for skill in match_result.missing_skills_prioritized.MEDIUM %}
+                            <span class="badge badge-warning" style="font-size: 0.85rem;">• {{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">None detected.</p>
+                {% endif %}
+            </div>
+
+            <!-- Low Priority -->
+            <div class="priority-block priority-low">
+                <div class="priority-title">
+                    <span>Priority: LOW</span>
+                </div>
+                {% if match_result.missing_skills_prioritized.LOW %}
+                    <div class="skill-tags">
+                        {% for skill in match_result.missing_skills_prioritized.LOW %}
+                            <span class="badge badge-primary" style="font-size: 0.85rem;">• {{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">None detected.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Keyword Coverage Grid -->
+        <div class="card">
+            <h3 style="font-size: 1.2rem; color: var(--secondary); margin-bottom: 0.5rem;">
+                Job Description Keyword Coverage ({{ match_result.keyword_coverage_pct }}%)
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">
+                Key domain terms extracted from the job posting and audited against your resume text.
+            </p>
+            <div class="keyword-grid">
+                {% for kw_item in match_result.keyword_breakdown %}
+                    <div class="keyword-card {% if kw_item.matched %}found{% else %}missing{% endif %}">
+                        <span>{{ kw_item.keyword }}</span>
+                        <span>{% if kw_item.matched %}✓{% else %}✗{% endif %}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar Score Components -->
+    <div>
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Hybrid Scoring Components</h3>
+            {% for metric_name, val in match_result.score_breakdown.items() %}
+                <div style="margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;">
+                        <span>{{ metric_name }}</span>
+                        <span>{{ val }}%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" style="width: {{ val }}%;"></div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="card">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Next Action Steps</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+                Prepare for technical interviews by generating tailored question kits based on your missing skills.
+            </p>
+            <a href="{{ url_for('interview_prep_view', target_role=match_result.job_title) }}" class="btn btn-primary" style="width: 100%; text-align: center;">
+                Generate AI Interview Kit
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

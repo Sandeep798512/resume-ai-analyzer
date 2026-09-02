@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}500 Server Error — ResumeAI{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 4rem auto; text-align: center; padding: 3rem;">
+    <h1 style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;">500</h1>
+    <h2 style="color: var(--secondary); margin-bottom: 1rem;">Internal Server Error</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">An unexpected server error occurred. Please try again or return to your dashboard.</p>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Return to Dashboard</a>
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+/* Resume Builder, Comparison & Interview Prep Styling */
+
+.builder-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+
+.version-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    transition: var(--transition);
+}
+
+.version-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary);
+}
+
+.template-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.template-option {
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    cursor: pointer;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.template-option:hover, .template-option.selected {
+    border-color: var(--primary);
+    background-color: var(--primary-light);
+}
+
+/* Side by Side Comparison Grid */
+.comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.comparison-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+
+.comparison-winner {
+    border: 2px solid var(--success);
+    background-color: var(--success-light);
+}
+
+/* Interview Q&A Cards */
+.question-category-title {
+    font-size: 1.1rem;
+    color: var(--secondary);
+    margin-bottom: 0.75rem;
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 0.4rem;
+    display: inline-block;
+}
+
+.question-item {
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Optimize Resume Version — ResumeAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="dashboard-header">
+        <div>
+            <h1>Targeted Resume Optimization</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Base Version: <strong>{{ version.version_name }}</strong></p>
+        </div>
+    </div>
+
+    <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+        <div style="background-color: var(--primary-light); border: 1px solid #bfdbfe; color: #1e40af; padding: 1rem; border-radius: var(--radius-md); font-size: 0.9rem; margin-bottom: 1.5rem;">
+            <strong>Safety Guarantee:</strong> Optimizing will create a brand-new independent version (e.g. <em>"{{ version.version_name }} — Google Optimized"</em>). Your original base version will NEVER be altered.
+        </div>
+
+        <form action="{{ url_for('optimize_view', version_id=version.id) }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+            <div class="form-group">
+                <label for="job_title" class="form-label">Target Job Title *</label>
+                <input type="text" id="job_title" name="job_title" class="form-input" placeholder="e.g. Python Backend Developer Intern" required>
+            </div>
+
+            <div class="form-group">
+                <label for="company_name" class="form-label">Company Name *</label>
+                <input type="text" id="company_name" name="company_name" class="form-input" placeholder="e.g. Google, TechCorp, Startup" required>
+            </div>
+
+            <div class="form-group">
+                <label for="job_description" class="form-label">Paste Target Job Description *</label>
+                <textarea id="job_description" name="job_description" rows="8" class="form-input" placeholder="Paste the job requirements and tech stack here..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 1.05rem; padding: 0.85rem;">
+                🎯 Optimize & Create New Version
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

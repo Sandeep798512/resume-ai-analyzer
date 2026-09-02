@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Hybrid AI Job Matcher — ResumeAI{% endblock %}
+
+{% block content %}
+<div style="max-width: 850px; margin: 0 auto;">
+    <div class="dashboard-header">
+        <div>
+            <h1>Hybrid AI Job Matcher</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Compare candidate resumes against job descriptions using TF-IDF + Sentence-Transformers Semantic Embeddings.</p>
+        </div>
+    </div>
+
+    <!-- Quick Presets Card -->
+    <div class="card" style="margin-bottom: 1.5rem; background-color: var(--primary-light); border-color: #bfdbfe; padding: 1.25rem;">
+        <h4 style="color: var(--primary); font-size: 1rem; margin-bottom: 0.5rem;">⚡ Instant Testing: One-Click Sample Job Descriptions</h4>
+        <p style="font-size: 0.85rem; color: #1e3a8a; margin-bottom: 0.75rem;">Select a pre-filled job posting preset or paste your own custom job description below:</p>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <a href="javascript:void(0)" onclick="fillSample('python_backend')" class="btn btn-secondary" style="font-size: 0.82rem; padding: 0.35rem 0.8rem; background: white;">Python Backend Intern</a>
+            <a href="javascript:void(0)" onclick="fillSample('aiml_engineer')" class="btn btn-secondary" style="font-size: 0.82rem; padding: 0.35rem 0.8rem; background: white;">AI/ML Engineer Intern</a>
+            <a href="javascript:void(0)" onclick="fillSample('software_engineer')" class="btn btn-secondary" style="font-size: 0.82rem; padding: 0.35rem 0.8rem; background: white;">Software Engineer Intern</a>
+        </div>
+    </div>
+
+    <div class="card" style="padding: 2rem;">
+        <form action="{{ url_for('job_matcher') }}" method="POST" id="job-matcher-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+            <!-- Resume Source Selector -->
+            <div class="form-group">
+                <label for="resume_source" class="form-label">Select Resume Source to Match *</label>
+                <select id="resume_source" name="resume_source" class="form-input">
+                    {% if analyses %}
+                        <option value="latest">Latest Uploaded PDF: {{ analyses[0].resume_filename }} (Score: {{ analyses[0].resume_score }}/100)</option>
+                    {% endif %}
+                    {% if versions %}
+                        {% for v in versions %}
+                            <option value="version_{{ v.id }}">Resume Builder Version: {{ v.version_name }} ({{ v.target_role }})</option>
+                        {% endfor %}
+                    {% endif %}
+                    <option value="sample" {% if not analyses and not versions %}selected{% endif %}>Sample Candidate Resume (Sandeep Gaud - B.Tech CSE AI)</option>
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="job_title" class="form-label">Target Job Title *</label>
+                    <input type="text" id="job_title" name="job_title" class="form-input" placeholder="e.g. Python Backend Developer Intern" required>
+                </div>
+                <div class="form-group">
+                    <label for="company_name" class="form-label">Company Name</label>
+                    <input type="text" id="company_name" name="company_name" class="form-input" placeholder="e.g. TechCorp, Google, Startup">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="job_description" class="form-label">Paste Target Job Description *</label>
+                <textarea id="job_description" name="job_description" rows="9" class="form-input" style="resize: vertical; font-family: inherit;" placeholder="Paste job requirements here..." required></textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1; font-size: 1.05rem; padding: 0.85rem;">
+                    ⚡ Calculate Hybrid Job Compatibility Score
+                </button>
+
+                <button type="button" onclick="generateAiCoverLetter()" class="btn btn-secondary" style="font-size: 1rem; padding: 0.85rem 1.25rem; background: #0f172a; color: white;">
+                    📝 Generate AI Cover Letter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- AI Cover Letter Result Section -->
+    <div id="cover-letter-box" class="card" style="display: none; margin-top: 1.5rem; padding: 2rem; border-left: 4px solid var(--primary);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.15rem; color: var(--secondary); margin: 0;">✉️ Gemini AI Tailored Cover Letter</h3>
+            <button onclick="copyCoverLetter()" class="btn btn-outline" style="font-size: 0.85rem; padding: 0.35rem 0.75rem;">📋 Copy Text</button>
+        </div>
+        <div id="cover-letter-content" style="white-space: pre-wrap; font-family: inherit; font-size: 0.95rem; color: #1e293b; line-height: 1.6; background: #f8fafc; padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border);"></div>
+    </div>
+</div>
+
+<script>
+function fillSample(presetKey) {
+    var samples = {
+        "python_backend": {
+            "title": "Python Backend Developer Intern",
+            "company": "TechCorp Solutions",
+            "text": "We are seeking a Python Backend Developer proficient in Python, Flask, REST API, SQL, PostgreSQL, Git, Docker, and AWS. Responsibilities include building scalable REST endpoints, database schema design, and writing unit tests."
+        },
+        "aiml_engineer": {
+            "title": "AI/ML Engineer Intern",
+            "company": "AI Innovations Lab",
+            "text": "Looking for an AI/ML Engineer skilled in Python, Machine Learning, Deep Learning, PyTorch, TensorFlow, Scikit-Learn, Pandas, NumPy, NLP, and Computer Vision. Candidate will design predictive ML pipelines and train neural network models."
+        },
+        "software_engineer": {
+            "title": "Software Engineer Intern",
+            "company": "Global Software Inc.",
+            "text": "Looking for a Software Engineer proficient in Data Structures, Algorithms, C++, Java, Python, SQL, DBMS, Operating Systems, Computer Networks, and OOP principles. Ideal candidates have strong problem-solving skills."
+        }
+    };
+    if (samples[presetKey]) {
+        document.getElementById('job_title').value = samples[presetKey].title;
+        document.getElementById('company_name').value = samples[presetKey].company;
+        document.getElementById('job_description').value = samples[presetKey].text;
+    }
+}
+
+async function generateAiCoverLetter() {
+    const jd = document.getElementById('job_description').value.trim();
+    const title = document.getElementById('job_title').value.trim();
+    const box = document.getElementById('cover-letter-box');
+    const content = document.getElementById('cover-letter-content');
+
+    if (!jd) {
+        alert('Please enter or select a Job Description first!');
+        return;
+    }
+
+    box.style.display = 'block';
+    content.innerText = '🤖 Generating customized Cover Letter using Gemini AI... Please wait...';
+
+    const formData = new FormData();
+    formData.append('csrf_token', '{{ csrf_token() }}');
+    formData.append('job_description', jd);
+    formData.append('target_role', title || 'Software Engineer');
+    formData.append('resume_text', 'Experienced CSE AI Student skilled in Python, Flask, ML, SQL, Git, and full stack web development.');
+
+    try {
+        const res = await fetch('/job-matcher/cover-letter', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+            content.innerText = data.cover_letter;
+        } else {
+            content.innerText = '❌ Error: ' + (data.error || 'Failed to generate cover letter. Add GEMINI_API_KEY to your .env file!');
+        }
+    } catch (err) {
+        content.innerText = '❌ Network error while generating Cover Letter.';
+    }
+}
+
+function copyCoverLetter() {
+    const text = document.getElementById('cover-letter-content').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Cover Letter copied to clipboard!');
+    });
+}
+</script>
+{% endblock %}

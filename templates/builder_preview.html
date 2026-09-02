@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Preview Resume: {{ version.version_name }} — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Resume Version Preview</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Version: <strong>{{ version.version_name }}</strong> | Theme: <strong>Elite ATS Standard</strong></p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <a href="{{ url_for('builder_export_pdf', version_id=version.id) }}" class="btn btn-primary">📄 Download Vector PDF</a>
+        <a href="{{ url_for('builder_edit', version_id=version.id) }}" class="btn btn-secondary">Edit Form</a>
+        <a href="{{ url_for('optimize_view', version_id=version.id) }}" class="btn btn-outline">Optimize for Job</a>
+    </div>
+</div>
+
+<!-- HTML/CSS ATS Resume Document Container (Matching Exact PDF Layout) -->
+<div class="card" style="max-width: 850px; margin: 0 auto 3rem auto; padding: 2.5rem 3rem; background: white; font-family: 'Times New Roman', Times, serif, Arial; color: #0f172a; box-shadow: var(--shadow-md); border: 1px solid var(--border);">
+    
+    <!-- Centered Header -->
+    <div style="text-align: center; margin-bottom: 1.25rem;">
+        <h1 style="font-size: 2rem; font-weight: bold; text-transform: uppercase; color: #0f172a; margin-bottom: 0.3rem; letter-spacing: 0.02em;">
+            {{ parsed.contact_info.name or user.name or 'CANDIDATE NAME' }}
+        </h1>
+        <div style="font-size: 0.9rem; color: #334155; margin-bottom: 0.25rem;">
+            {% set header_items = [] %}
+            {% if parsed.contact_info.location %}{% set _ = header_items.append(parsed.contact_info.location) %}{% endif %}
+            {% if parsed.contact_info.phone %}{% set _ = header_items.append('Phone: ' + parsed.contact_info.phone) %}{% endif %}
+            {% if parsed.contact_info.email %}{% set _ = header_items.append('Email: ' + parsed.contact_info.email) %}{% endif %}
+            {{ header_items|join(' | ') }}
+        </div>
+
+        <div style="font-size: 0.9rem; color: #1d4ed8;">
+            {% set link_items = [] %}
+            {% if parsed.contact_info.linkedin %}
+                {% set url = parsed.contact_info.linkedin if parsed.contact_info.linkedin.startswith('http') else 'https://' + parsed.contact_info.linkedin %}
+                {% set _ = link_items.append('<a href="' + url + '" target="_blank" style="color: #1d4ed8; text-decoration: underline;">LinkedIn</a>') %}
+            {% endif %}
+            {% if parsed.contact_info.github %}
+                {% set url = parsed.contact_info.github if parsed.contact_info.github.startswith('http') else 'https://' + parsed.contact_info.github %}
+                {% set _ = link_items.append('<a href="' + url + '" target="_blank" style="color: #1d4ed8; text-decoration: underline;">GitHub</a>') %}
+            {% endif %}
+            {% if parsed.contact_info.portfolio %}
+                {% set url = parsed.contact_info.portfolio if parsed.contact_info.portfolio.startswith('http') else 'https://' + parsed.contact_info.portfolio %}
+                {% set _ = link_items.append('<a href="' + url + '" target="_blank" style="color: #1d4ed8; text-decoration: underline;">Portfolio</a>') %}
+            {% endif %}
+            {{ link_items|join(' | ')|safe }}
+        </div>
+    </div>
+
+    <!-- Objective Section -->
+    {% if parsed.summary and parsed.summary.strip() %}
+    <div style="margin-bottom: 1.2rem;">
+        <h3 style="font-size: 1.05rem; text-transform: uppercase; color: #0f172a; font-weight: bold; margin-bottom: 0.2rem; border-bottom: 1.5px solid #0f172a; padding-bottom: 0.15rem;">
+            OBJECTIVE
+        </h3>
+        <p style="font-size: 0.9rem; color: #1e293b; line-height: 1.4; margin-top: 0.3rem;">{{ parsed.summary }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Technical Skills Section -->
+    {% set has_skills = false %}
+    {% if parsed.skills %}
+        {% for cat, items in parsed.skills.items() %}
+            {% if items %}
+                {% set has_skills = true %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    {% if has_skills %}
+    <div style="margin-bottom: 1.2rem;">
+        <h3 style="font-size: 1.05rem; text-transform: uppercase; color: #0f172a; font-weight: bold; margin-bottom: 0.4rem; border-bottom: 1.5px solid #0f172a; padding-bottom: 0.15rem;">
+            TECHNICAL SKILLS
+        </h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 1.5rem; font-size: 0.9rem; color: #1e293b;">
+            {% for cat, items in parsed.skills.items() %}
+                {% if items %}
+                <div>
+                    <strong>{{ cat }}:</strong> {{ items|join(', ') if (items is sequence and items is not string) else items }}
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Experience Section -->
+    {% set has_exp = false %}
+    {% if parsed.experience %}
+        {% for exp in parsed.experience %}
+            {% if exp.title and exp.title.strip() %}
+                {% set has_exp = true %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    {% if has_exp %}
+    <div style="margin-bottom: 1.2rem;">
+        <h3 style="font-size: 1.05rem; text-transform: uppercase; color: #0f172a; font-weight: bold; margin-bottom: 0.4rem; border-bottom: 1.5px solid #0f172a; padding-bottom: 0.15rem;">
+            EXPERIENCE
+        </h3>
+        {% for exp in parsed.experience %}
+            {% if exp.title and exp.title.strip() %}
+            <div style="margin-bottom: 0.6rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.92rem; font-weight: bold;">
+                    <span>{{ exp.title }}</span>
+                    <span>{{ exp.dates }}</span>
+                </div>
+                {% if exp.company %}
+                    <div style="font-size: 0.88rem; font-style: italic; color: #334155; margin-bottom: 0.2rem;">{{ exp.company }}</div>
+                {% endif %}
+                {% if exp.description %}
+                    <ul style="margin-top: 0.2rem; padding-left: 1.2rem; font-size: 0.88rem; color: #1e293b; line-height: 1.35;">
+                        {% for line in exp.description.split('\n') %}
+                            {% if line.strip() %}
+                                <li>{{ line.replace('•', '').strip() }}</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Technical Projects Section -->
+    {% set has_proj = false %}
+    {% if parsed.projects %}
+        {% for proj in parsed.projects %}
+            {% if proj.title and proj.title.strip() %}
+                {% set has_proj = true %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    {% if has_proj %}
+    <div style="margin-bottom: 1.2rem;">
+        <h3 style="font-size: 1.05rem; text-transform: uppercase; color: #0f172a; font-weight: bold; margin-bottom: 0.4rem; border-bottom: 1.5px solid #0f172a; padding-bottom: 0.15rem;">
+            TECHNICAL PROJECTS
+        </h3>
+        {% for proj in parsed.projects %}
+            {% if proj.title and proj.title.strip() %}
+            <div style="margin-bottom: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.92rem; align-items: baseline;">
+                    <div>
+                        <strong>{{ proj.title }}</strong>
+                        {% set p_links = [] %}
+                        {% if proj.github_url and proj.github_url.strip() %}
+                            {% set _ = p_links.append('<a href="' + (proj.github_url if proj.github_url.startswith("http") else "https://" + proj.github_url) + '" target="_blank" style="color: #1d4ed8; text-decoration: underline;">GitHub</a>') %}
+                        {% endif %}
+                        {% if proj.live_demo_url and proj.live_demo_url.strip() %}
+                            {% set _ = p_links.append('<a href="' + (proj.live_demo_url if proj.live_demo_url.startswith("http") else "https://" + proj.live_demo_url) + '" target="_blank" style="color: #1d4ed8; text-decoration: underline;">Live Demo</a>') %}
+                        {% endif %}
+                        {% if p_links %}
+                            <span style="font-size: 0.88rem; color: #1d4ed8;">({{ p_links|join(' | ')|safe }})</span>
+                        {% endif %}
+                    </div>
+                    {% if proj.tech_stack %}
+                        <span style="font-size: 0.88rem; font-style: italic; color: #334155; font-weight: 600;">{{ proj.tech_stack }}</span>
+                    {% endif %}
+                </div>
+                {% if proj.description %}
+                    <ul style="margin-top: 0.2rem; padding-left: 1.2rem; font-size: 0.88rem; color: #1e293b; line-height: 1.35;">
+                        {% for line in proj.description.split('\n') %}
+                            {% if line.strip() %}
+                                <li>{{ line.replace('•', '').strip() }}</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Education Section -->
+    {% set has_edu = false %}
+    {% if parsed.education %}
+        {% for edu in parsed.education %}
+            {% if edu.degree and edu.degree.strip() %}
+                {% set has_edu = true %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    {% if has_edu %}
+    <div style="margin-bottom: 1.2rem;">
+        <h3 style="font-size: 1.05rem; text-transform: uppercase; color: #0f172a; font-weight: bold; margin-bottom: 0.4rem; border-bottom: 1.5px solid #0f172a; padding-bottom: 0.15rem;">
+            EDUCATION
+        </h3>
+        {% for edu in parsed.education %}
+            {% if edu.degree and edu.degree.strip() %}
+            <div style="margin-bottom: 0.4rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.92rem; font-weight: bold;">
+                    <span>{{ edu.degree }}</span>
+                    <span>{{ edu.year }}</span>
+                </div>
+                {% if edu.institution %}
+                    <div style="font-size: 0.88rem; font-style: italic; color: #334155;">{{ edu.institution }}</div>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Certifications Section -->
+    {% set has_certs = false %}
+    {% if parsed.certifications %}
+        {% for c in parsed.certifications %}
+            {% if c is mapping and c.name and c.name.strip() %}
+                {% set has_certs = true %}
+            {% elif c is string and c.strip() %}
+                {% set has_certs = true %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    {% if has_certs %}
+    <div style="margin-bottom: 1.2rem;">
+        <h3 style="font-size: 1.05rem; text-transform: uppercase; color: #0f172a; font-weight: bold; margin-bottom: 0.4rem; border-bottom: 1.5px solid #0f172a; padding-bottom: 0.15rem;">
+            CERTIFICATIONS
+        </h3>
+        {% for c in parsed.certifications %}
+            {% if c is mapping and c.name and c.name.strip() %}
+                <div style="display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 0.2rem;">
+                    <span><strong>{{ c.name }}</strong></span>
+                    <span style="color: #475569;">{{ c.date }}</span>
+                </div>
+            {% elif c is string and c.strip() %}
+                <div style="font-size: 0.88rem; margin-bottom: 0.2rem;">• {{ c }}</div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Achievements Section -->
+    {% set has_ach = false %}
+    {% if parsed.achievements %}
+        {% for ach in parsed.achievements %}
+            {% if ach and ach.strip() %}
+                {% set has_ach = true %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    {% if has_ach %}
+    <div>
+        <h3 style="font-size: 1.05rem; text-transform: uppercase; color: #0f172a; font-weight: bold; margin-bottom: 0.4rem; border-bottom: 1.5px solid #0f172a; padding-bottom: 0.15rem;">
+            ACHIEVEMENTS
+        </h3>
+        <ul style="padding-left: 1.2rem; font-size: 0.88rem; color: #1e293b; line-height: 1.35;">
+            {% for ach in parsed.achievements %}
+                {% if ach and ach.strip() %}
+                    <li>{{ ach.replace('•', '').strip() }}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

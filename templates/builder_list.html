@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Resume Versions — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Resume Versions & Builder</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Maintain independent resume versions tailored to different job roles (e.g. Python Backend, AI/ML).</p>
+    </div>
+    <div>
+        <a href="{{ url_for('builder_new') }}" class="btn btn-primary">+ Create New Resume Version</a>
+    </div>
+</div>
+
+{% if versions %}
+<div style="display: flex; flex-direction: column; gap: 1rem;">
+    {% for item in versions %}
+        <div class="version-card">
+            <div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <h3 style="font-size: 1.2rem; color: var(--secondary);">{{ item.version_name }}</h3>
+                    <span class="badge badge-primary">{{ item.target_role }}</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.3rem;">
+                    Last updated: {{ item.created_at[:10] }} &bull; Template: <strong>{{ item.template_name or 'ATS Classic' }}</strong>
+                </p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <a href="{{ url_for('builder_preview', version_id=item.id) }}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Preview & PDF</a>
+                <a href="{{ url_for('builder_edit', version_id=item.id) }}" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Edit</a>
+                <a href="{{ url_for('optimize_view', version_id=item.id) }}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Optimize for Job</a>
+                <form action="{{ url_for('builder_duplicate', version_id=item.id) }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Duplicate</button>
+                </form>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="card" style="margin-top: 2rem; padding: 1.5rem; text-align: center;">
+    <h4 style="color: var(--secondary); margin-bottom: 0.5rem;">Compare Resume Versions</h4>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Evaluate two resume versions side-by-side to see which version has higher skill density and keyword coverage.</p>
+    <a href="{{ url_for('compare_view') }}" class="btn btn-primary">Side-by-Side Comparison Tool &rarr;</a>
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 4rem 2rem;">
+    <h2 style="color: var(--secondary); margin-bottom: 0.8rem;">No Structured Resume Versions Found</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">Create your first independent ATS resume version using our structured builder.</p>
+    <a href="{{ url_for('builder_new') }}" class="btn btn-primary">Create Resume Version</a>
+</div>
+{% endif %}
+{% endblock %}

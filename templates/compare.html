@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Compare Resume Versions — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Compare Resume Versions Side-by-Side</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Select two independent resume versions to evaluate skill density, project details, and overall quality metrics.</p>
+    </div>
+</div>
+
+<div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+    <form action="{{ url_for('compare_view') }}" method="GET" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: flex-end;">
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="version_a" class="form-label">Resume Version A *</label>
+            <select id="version_a" name="version_a" class="form-input" required>
+                {% for v in versions %}
+                    <option value="{{ v.id }}" {% if version_a_id == v.id %}selected{% endif %}>{{ v.version_name }} ({{ v.target_role }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="version_b" class="form-label">Resume Version B *</label>
+            <select id="version_b" name="version_b" class="form-input" required>
+                {% for v in versions %}
+                    <option value="{{ v.id }}" {% if version_b_id == v.id %}selected{% endif %}>{{ v.version_name }} ({{ v.target_role }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">Compare Now</button>
+    </form>
+</div>
+
+{% if compare_result %}
+<div class="card" style="margin-bottom: 2rem; background-color: var(--success-light); border: 2px solid var(--success); padding: 1.5rem;">
+    <h3 style="color: #065f46; font-size: 1.2rem; margin-bottom: 0.5rem;">🏆 Winner: {{ compare_result.winner }}</h3>
+    <p style="font-size: 0.95rem; color: #064e3b;">{{ compare_result.rationale }}</p>
+</div>
+
+<div class="comparison-grid">
+    <!-- Version A Card -->
+    <div class="comparison-card {% if compare_result.winner == compare_result.resume_a.name %}comparison-winner{% endif %}">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.3rem; color: var(--secondary);">{{ compare_result.resume_a.name }}</h3>
+            <span class="badge badge-primary">{{ compare_result.resume_a.target_role }}</span>
+        </div>
+
+        <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem;">
+            {{ compare_result.resume_a.overall_score }} <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">/ 100</span>
+        </div>
+
+        <ul class="feedback-list">
+            <li><span>Extracted Skills:</span> <strong>{{ compare_result.resume_a.skills_count }}</strong></li>
+            <li><span>Projects:</span> <strong>{{ compare_result.resume_a.projects_count }}</strong></li>
+            <li><span>Work Experience:</span> <strong>{{ compare_result.resume_a.experience_count }}</strong></li>
+        </ul>
+
+        <a href="{{ url_for('builder_preview', version_id=compare_result.resume_a.id) }}" class="btn btn-secondary" style="width: 100%; margin-top: 1.5rem; text-align: center;">Preview Version A</a>
+    </div>
+
+    <!-- Version B Card -->
+    <div class="comparison-card {% if compare_result.winner == compare_result.resume_b.name %}comparison-winner{% endif %}">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.3rem; color: var(--secondary);">{{ compare_result.resume_b.name }}</h3>
+            <span class="badge badge-primary">{{ compare_result.resume_b.target_role }}</span>
+        </div>
+
+        <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem;">
+            {{ compare_result.resume_b.overall_score }} <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">/ 100</span>
+        </div>
+
+        <ul class="feedback-list">
+            <li><span>Extracted Skills:</span> <strong>{{ compare_result.resume_b.skills_count }}</strong></li>
+            <li><span>Projects:</span> <strong>{{ compare_result.resume_b.projects_count }}</strong></li>
+            <li><span>Work Experience:</span> <strong>{{ compare_result.resume_b.experience_count }}</strong></li>
+        </ul>
+
+        <a href="{{ url_for('builder_preview', version_id=compare_result.resume_b.id) }}" class="btn btn-secondary" style="width: 100%; margin-top: 1.5rem; text-align: center;">Preview Version B</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

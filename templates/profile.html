@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile — ResumeAI V2{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <!-- Profile Header Banner -->
+    <div class="card" style="padding: 2rem; margin-bottom: 2rem; background: linear-gradient(135deg, var(--secondary) 0%, #1e293b 100%); color: white; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 1.25rem;">
+            <div style="width: 70px; height: 70px; border-radius: 50%; background: var(--primary); color: white; font-size: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 3px solid rgba(255,255,255,0.2);">
+                {{ user.name[0]|upper if user.name else 'U' }}
+            </div>
+            <div>
+                <h1 style="font-size: 1.8rem; margin-bottom: 0.2rem; color: white;">{{ user.name }}</h1>
+                <p style="opacity: 0.85; font-size: 0.95rem;">{{ user.email }}</p>
+            </div>
+        </div>
+        <div>
+            <span class="badge badge-primary" style="font-size: 0.9rem; padding: 0.4rem 1rem;">
+                Target: {{ profile.target_role or 'Software Engineer' }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Account Statistics Grid -->
+    <div class="metrics-grid" style="margin-bottom: 2rem;">
+        <div class="metric-card" style="border-top: 4px solid var(--primary);">
+            <div class="metric-title">Resumes Analyzed</div>
+            <div class="metric-value">{{ stats.total_analyses }}</div>
+            <div class="metric-sub">Total PDF Reports</div>
+        </div>
+
+        <div class="metric-card" style="border-top: 4px solid var(--success);">
+            <div class="metric-title">Resume Versions</div>
+            <div class="metric-value">{{ stats.total_versions }}</div>
+            <div class="metric-sub">Structured Drafts</div>
+        </div>
+
+        <div class="metric-card" style="border-top: 4px solid var(--accent);">
+            <div class="metric-title">Member Since</div>
+            <div class="metric-value" style="font-size: 1.4rem; padding-top: 0.5rem;">{{ stats.joined_date }}</div>
+            <div class="metric-sub">Account Creation Date</div>
+        </div>
+    </div>
+
+    <!-- Main Profile Edit Form -->
+    <div class="card" style="padding: 2.5rem; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.3rem; color: var(--secondary); margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+            Edit Personal & Academic Details
+        </h2>
+
+        <form action="{{ url_for('profile') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+            <!-- Personal & Career -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="name" class="form-label">Full Name *</label>
+                    <input type="text" id="name" name="name" class="form-input" value="{{ user.name }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone" class="form-label">Contact Phone Number</label>
+                    <input type="text" id="phone" name="phone" class="form-input" placeholder="+91 9876543210" value="{{ profile.phone or '' }}">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address (Read-only)</label>
+                    <input type="email" id="email" class="form-input" value="{{ user.email }}" disabled style="background-color: var(--background); opacity: 0.8;">
+                </div>
+                <div class="form-group">
+                    <label for="target_role" class="form-label">Primary Target Role</label>
+                    <select id="target_role" name="target_role" class="form-input">
+                        {% for r_name in roles_list %}
+                            <option value="{{ r_name }}" {% if profile and profile.target_role == r_name %}selected{% endif %}>{{ r_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Academic Background -->
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-top: 1.5rem; margin-bottom: 1rem;">Academic Background</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="college" class="form-label">College / University</label>
+                    <input type="text" id="college" name="college" class="form-input" placeholder="e.g. State Institute of Technology" value="{{ profile.college or '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="degree" class="form-label">Degree</label>
+                    <input type="text" id="degree" name="degree" class="form-input" placeholder="e.g. B.Tech" value="{{ profile.degree or '' }}">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="branch" class="form-label">Branch / Major</label>
+                    <input type="text" id="branch" name="branch" class="form-input" placeholder="e.g. Computer Science (AI)" value="{{ profile.branch or '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="graduation_year" class="form-label">Graduation Year</label>
+                    <input type="number" id="graduation_year" name="graduation_year" class="form-input" placeholder="2026" value="{{ profile.graduation_year or '' }}">
+                </div>
+            </div>
+
+            <!-- Code & Social Links -->
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-top: 1.5rem; margin-bottom: 1rem;">Code & Social Profiles</h3>
+            <div class="form-group">
+                <label for="github_url" class="form-label">
+                    GitHub Profile URL 
+                    {% if profile and profile.github_url %}
+                        &bull; <a href="{{ profile.github_url }}" target="_blank" style="font-size: 0.85rem;">View Profile &nearr;</a>
+                    {% endif %}
+                </label>
+                <input type="url" id="github_url" name="github_url" class="form-input" placeholder="https://github.com/username" value="{{ profile.github_url or '' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="linkedin_url" class="form-label">
+                    LinkedIn Profile URL
+                    {% if profile and profile.linkedin_url %}
+                        &bull; <a href="{{ profile.linkedin_url }}" target="_blank" style="font-size: 0.85rem;">View Profile &nearr;</a>
+                    {% endif %}
+                </label>
+                <input type="url" id="linkedin_url" name="linkedin_url" class="form-input" placeholder="https://linkedin.com/in/username" value="{{ profile.linkedin_url or '' }}">
+            </div>
+
+            <!-- Password Change Section -->
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-top: 2rem; margin-bottom: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                Account Security & Password Change
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Leave password fields blank if you do not wish to change your password.</p>
+
+            <div class="form-group">
+                <label for="current_password" class="form-label">Current Password</label>
+                <input type="password" id="current_password" name="current_password" class="form-input" placeholder="Enter current password to verify">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="new_password" class="form-label">New Password</label>
+                    <input type="password" id="new_password" name="new_password" class="form-input" placeholder="At least 6 characters" minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirm_new_password" class="form-label">Confirm New Password</label>
+                    <input type="password" id="confirm_new_password" name="confirm_new_password" class="form-input" placeholder="Repeat new password">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 0.85rem; font-size: 1rem;">
+                💾 Save All Profile Changes
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Resume — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="upload-wrapper">
+    <div class="card" style="padding: 2.5rem;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h1 style="font-size: 1.8rem; color: var(--secondary); margin-bottom: 0.5rem;">Upload Your Resume</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Select your PDF resume for automated AI/NLP extraction & hybrid scoring.</p>
+        </div>
+
+        <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+            <div class="upload-box">
+                <div class="upload-icon">📄</div>
+                <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 0.5rem;">Select Resume PDF Document</h3>
+                <p style="color: var(--text-muted); font-size: 0.88rem;">Only standard <strong>.PDF</strong> files with text layers are supported.</p>
+
+                <div class="file-input-hidden">
+                    <input type="file" name="resume" accept=".pdf" required style="padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: white;">
+                </div>
+
+                <div class="upload-limits">
+                    Maximum file size: 5 MB &bull; Security Header Validated (%PDF-)
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem; font-size: 1.05rem; padding: 0.85rem;">
+                🚀 Analyze Resume Now
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

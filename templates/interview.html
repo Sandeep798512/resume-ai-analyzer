@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}AI Interview Simulator & Practice — ResumeAI V2{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>AI Technical & Behavioral Interview Simulator</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Target Role: <strong>{{ target_role }}</strong> | Provider: <strong>{{ prep_data.provider }}</strong></p>
+    </div>
+    <div>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">&larr; Return to Dashboard</a>
+    </div>
+</div>
+
+<!-- Role Switcher Form -->
+<div class="card" style="margin-bottom: 2rem; padding: 1.25rem;">
+    <form action="{{ url_for('interview_prep_view') }}" method="GET" style="display: flex; align-items: center; gap: 1rem;">
+        <label for="target_role" style="font-weight: 600; font-size: 0.9rem; white-space: nowrap;">Target Technical Role:</label>
+        <select name="target_role" id="target_role" class="form-input" style="width: auto; flex: 1;" onchange="this.form.submit()">
+            {% for r_name in roles_list %}
+                <option value="{{ r_name }}" {% if r_name == target_role %}selected{% endif %}>{{ r_name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-secondary" style="padding: 0.6rem 1.2rem;">Generate Interview Kit</button>
+    </form>
+</div>
+
+<!-- AI Evaluation Result Card (When Student Submits an Answer) -->
+{% if eval_result %}
+<div class="card" style="margin-bottom: 2.5rem; padding: 2rem; border-left: 6px solid var(--primary); background: #f0f9ff; border-color: #0284c7;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="font-size: 1.4rem; color: #0369a1;">🤖 AI Answer Evaluation Result</h2>
+        <span class="badge {% if eval_result.score >= 80 %}badge-success{% elif eval_result.score >= 60 %}badge-warning{% else %}badge-danger{% endif %}" style="font-size: 1.1rem; padding: 0.5rem 1.2rem;">
+            Score: {{ eval_result.score }}/100
+        </span>
+    </div>
+
+    <div style="background: white; padding: 1rem 1.25rem; border-radius: var(--radius-md); border: 1px solid #bae6fd; margin-bottom: 1.25rem;">
+        <strong style="color: var(--secondary); font-size: 0.95rem;">Question Practiced:</strong>
+        <p style="font-size: 1rem; font-weight: 600; color: #0f172a; margin-top: 0.2rem;">"{{ eval_result.question }}"</p>
+    </div>
+
+    <div style="margin-bottom: 1.25rem;">
+        <strong style="color: #0369a1; font-size: 0.95rem;">AI Feedback:</strong>
+        <p style="font-size: 0.95rem; color: #334155; margin-top: 0.25rem; line-height: 1.5;">{{ eval_result.feedback }}</p>
+    </div>
+
+    {% if eval_result.strengths %}
+    <div style="margin-bottom: 1rem;">
+        <strong style="color: var(--success); font-size: 0.9rem;">✓ Strengths in Your Response:</strong>
+        <ul class="feedback-list" style="margin-top: 0.3rem;">
+            {% for s in eval_result.strengths %}
+                <li style="color: #065f46; border-bottom: none; padding: 0.2rem 0;"><span>✓</span> <span>{{ s }}</span></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if eval_result.missing_terms %}
+    <div style="margin-bottom: 1.25rem;">
+        <strong style="color: var(--warning); font-size: 0.9rem;">⚠️ Key Technical Terms / Concepts to Add:</strong>
+        <div class="skill-tags" style="margin-top: 0.4rem;">
+            {% for term in eval_result.missing_terms %}
+                <span class="badge badge-warning" style="font-size: 0.85rem;">+ {{ term }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if eval_result.model_answer %}
+    <div style="background: white; border-radius: var(--radius-md); padding: 1.25rem; border: 1px solid #e2e8f0;">
+        <strong style="color: var(--primary); font-size: 0.9rem; display: block; margin-bottom: 0.4rem;">💡 Ideal Model Answer Structure:</strong>
+        <p style="font-size: 0.92rem; color: #1e293b; line-height: 1.6;">{{ eval_result.model_answer }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Candidate Answer Practice Form Modal / Section -->
+<div class="card" style="margin-bottom: 2.5rem; padding: 2rem;">
+    <h3 style="font-size: 1.2rem; color: var(--secondary); margin-bottom: 0.5rem;">✍️ Interactive Mock Interview Practice Mode</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">Select any question below, type your response, and click <strong>Submit Answer for AI Evaluation</strong>.</p>
+
+    <form action="{{ url_for('interview_prep_view', target_role=target_role) }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <div class="form-group">
+            <label for="practice_question" class="form-label">Selected Question to Answer *</label>
+            <input type="text" id="practice_question" name="question" class="form-input" placeholder="Click 'Practice This Question' below or select a question..." value="{{ selected_question or (prep_data.questions.technical[0].question if (prep_data.questions.technical and prep_data.questions.technical[0] is mapping) else '') }}" required>
+        </div>
+
+        <input type="hidden" id="practice_model_ans" name="model_answer" value="{{ prep_data.questions.technical[0].model_answer if (prep_data.questions.technical and prep_data.questions.technical[0] is mapping) else '' }}">
+        <input type="hidden" id="practice_key_terms" name="key_terms" value="{{ (prep_data.questions.technical[0].key_terms|join(',')) if (prep_data.questions.technical and prep_data.questions.technical[0] is mapping and prep_data.questions.technical[0].key_terms is sequence) else '' }}">
+
+        <div class="form-group">
+            <label for="user_answer" class="form-label">Your Candidate Response *</label>
+            <textarea id="user_answer" name="user_answer" rows="6" class="form-input" placeholder="Type your candidate answer here... E.g., 'In Python, the GIL is a mutual exclusion lock that prevents multiple threads from executing bytecode simultaneously...'" required>{{ user_answer or '' }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 1.05rem; padding: 0.85rem;">
+            🤖 Submit Answer & Get AI Feedback Score
+        </button>
+    </form>
+</div>
+
+<!-- Main Q&A Kit Grid -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+
+    <div>
+        <!-- Technical Questions with Model Answers -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <span class="question-category-title">1. Technical & Framework Questions</span>
+            <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
+                {% for item in prep_data.questions.technical %}
+                    <div style="background: var(--background); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
+                        {% if item is mapping %}
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.5rem;">
+                                <strong style="font-size: 1rem; color: var(--secondary);"><span style="color: var(--primary);">Q:</span> {{ item.question }}</strong>
+                                <button type="button" class="btn btn-outline" style="padding: 0.25rem 0.6rem; font-size: 0.78rem; white-space: nowrap;" onclick="selectQuestion('{{ item.question|escape }}', '{{ item.model_answer|escape }}', '{{ item.key_terms|join(",") if item.key_terms is sequence else "" }}')">
+                                    ✍️ Practice This
+                                </button>
+                            </div>
+                            
+                            <details style="margin-top: 0.75rem; font-size: 0.92rem; color: var(--text-main);">
+                                <summary style="cursor: pointer; font-weight: 700; color: var(--primary); font-size: 0.88rem;">
+                                    📖 View Model Answer & Key Concepts
+                                </summary>
+                                <div style="margin-top: 0.5rem; background: white; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border); line-height: 1.5;">
+                                    <p><strong>Ideal Answer:</strong> {{ item.model_answer }}</p>
+                                    {% if item.key_terms %}
+                                        <div style="margin-top: 0.5rem; font-size: 0.82rem; color: var(--text-muted);">
+                                            <strong>Key Concepts:</strong> {{ item.key_terms|join(', ') }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </details>
+                        {% else %}
+                            <strong style="color: var(--primary);">Q:</strong> {{ item }}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Resume & Project Questions -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <span class="question-category-title">2. Resume & Project Architecture Questions</span>
+            <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
+                {% for item in prep_data.questions.resume %}
+                    <div style="background: var(--background); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
+                        {% if item is mapping %}
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.5rem;">
+                                <strong style="font-size: 1rem; color: var(--secondary);"><span style="color: var(--primary);">Q:</span> {{ item.question }}</strong>
+                                <button type="button" class="btn btn-outline" style="padding: 0.25rem 0.6rem; font-size: 0.78rem; white-space: nowrap;" onclick="selectQuestion('{{ item.question|escape }}', '{{ item.model_answer|escape }}', '{{ item.key_terms|join(",") if item.key_terms is sequence else "" }}')">
+                                    ✍️ Practice This
+                                </button>
+                            </div>
+                            
+                            <details style="margin-top: 0.75rem; font-size: 0.92rem; color: var(--text-main);">
+                                <summary style="cursor: pointer; font-weight: 700; color: var(--primary); font-size: 0.88rem;">
+                                    📖 View Model Answer & Architecture Outline
+                                </summary>
+                                <div style="margin-top: 0.5rem; background: white; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border); line-height: 1.5;">
+                                    <p><strong>Answer Guide:</strong> {{ item.model_answer }}</p>
+                                </div>
+                            </details>
+                        {% else %}
+                            <strong style="color: var(--primary);">Q:</strong> {{ item }}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Behavioral Questions -->
+        <div class="card">
+            <span class="question-category-title">3. Behavioral & Situation Questions</span>
+            <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
+                {% for item in prep_data.questions.behavioral %}
+                    <div style="background: var(--background); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem;">
+                        {% if item is mapping %}
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                                <strong style="font-size: 1rem; color: var(--secondary);"><span style="color: var(--primary);">Q:</span> {{ item.question }}</strong>
+                                <button type="button" class="btn btn-outline" style="padding: 0.25rem 0.6rem; font-size: 0.78rem; white-space: nowrap;" onclick="selectQuestion('{{ item.question|escape }}', '{{ item.model_answer|escape }}', '')">
+                                    ✍️ Practice This
+                                </button>
+                            </div>
+                            
+                            <details style="margin-top: 0.75rem; font-size: 0.92rem; color: var(--text-main);">
+                                <summary style="cursor: pointer; font-weight: 700; color: var(--primary); font-size: 0.88rem;">
+                                    📖 View STAR Technique Answer Model
+                                </summary>
+                                <div style="margin-top: 0.5rem; background: white; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border); line-height: 1.5;">
+                                    <p><strong>STAR Strategy:</strong> {{ item.model_answer }}</p>
+                                </div>
+                            </details>
+                        {% else %}
+                            <strong style="color: var(--primary);">Q:</strong> {{ item }}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar: DSA & CS Fundamentals -->
+    <div>
+        <!-- DSA Topics -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">🎯 High-Priority DSA Topics</h3>
+            <div class="skill-tags">
+                {% for topic in prep_data.questions.dsa %}
+                    <span class="skill-tag" style="background-color: var(--primary-light); font-size: 0.9rem;">
+                        • {{ topic }}
+                    </span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- CS Fundamentals -->
+        <div class="card">
+            <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">📚 Essential CS Fundamentals</h3>
+            <div class="skill-tags">
+                {% for cs in prep_data.questions.cs_fundamentals %}
+                    <span class="skill-tag" style="background-color: var(--success-light); color: var(--success); font-size: 0.9rem;">
+                        ✓ {{ cs }}
+                    </span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function selectQuestion(qText, mAnswer, kTerms) {
+    document.getElementById('practice_question').value = qText;
+    document.getElementById('practice_model_ans').value = mAnswer;
+    document.getElementById('practice_key_terms').value = kTerms;
+    window.scrollTo({ top: 400, behavior: 'smooth' });
+}
+</script>
+{% endblock %}

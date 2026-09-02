@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}429 Rate Limit Exceeded — ResumeAI{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 4rem auto; text-align: center; padding: 3rem;">
+    <h1 style="font-size: 3rem; color: var(--warning); margin-bottom: 1rem;">429</h1>
+    <h2 style="color: var(--secondary); margin-bottom: 1rem;">Too Many Requests</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">Security Rate Limit Triggered: You have made too many requests in a short period. Please wait a minute and try again.</p>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Return to Dashboard</a>
+</div>
+{% endblock %}

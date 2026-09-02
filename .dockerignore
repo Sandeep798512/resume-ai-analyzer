@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.venv/
+instance/*.db
+uploads/*.pdf
+.env
+.git/
+.vscode/

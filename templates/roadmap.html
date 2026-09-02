@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}10-Week Learning Roadmap — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Personalized 10-Week Learning Roadmap</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Tailored specifically to bridge your identified skill gaps for <strong>{{ roadmap.target_role }}</strong>.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">&larr; Return to Dashboard</a>
+    </div>
+</div>
+
+<!-- Navigation Tabs -->
+<div style="display: flex; gap: 0.5rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+    <a href="{{ url_for('analysis_detail', analysis_id=analysis_id) }}" class="btn btn-secondary">Resume Score & Skills</a>
+    <a href="{{ url_for('career_recommendation', analysis_id=analysis_id) }}" class="btn btn-secondary">Career Recommendations</a>
+    <a href="{{ url_for('skill_gap', analysis_id=analysis_id, target_role=roadmap.target_role) }}" class="btn btn-secondary">Skill Gap Analysis</a>
+    <a href="{{ url_for('roadmap', analysis_id=analysis_id, target_role=roadmap.target_role) }}" class="btn btn-secondary" style="border-bottom: 3px solid var(--primary); font-weight: 700;">10-Week Roadmap</a>
+</div>
+
+<div class="card" style="margin-bottom: 2rem; background-color: var(--primary-light); border-color: #bfdbfe;">
+    <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 0.5rem;">🎯 Target Goal: {{ roadmap.target_role }} Readiness</h3>
+    <p style="font-size: 0.95rem; color: #1e3a8a;">
+        Focusing on high-impact missing skills: <strong>{{ roadmap.missing_skills|join(', ') }}</strong>.
+    </p>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+    {% for phase in roadmap.phases %}
+        <div class="card" style="border-left: 6px solid var(--primary);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <span class="badge badge-primary" style="font-size: 0.85rem; padding: 0.4rem 0.9rem;">
+                    {{ phase.timeframe }}
+                </span>
+                <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                    Focus: {{ phase.focus_skill }}
+                </span>
+            </div>
+
+            <h3 style="font-size: 1.25rem; color: var(--secondary); margin-bottom: 0.75rem;">
+                {{ phase.phase_name }}
+            </h3>
+
+            <div style="background-color: var(--background); border-radius: var(--radius-md); padding: 1.25rem; border: 1px solid var(--border);">
+                <strong style="font-size: 0.9rem; color: var(--secondary); display: block; margin-bottom: 0.5rem;">Key Actionable Objectives:</strong>
+                <ul class="feedback-list" style="margin-top: 0;">
+                    {% for obj in phase.objectives %}
+                        <li style="border-bottom: none; padding: 0.35rem 0;">
+                            <span style="color: var(--primary);">📌</span>
+                            <span>{{ obj }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

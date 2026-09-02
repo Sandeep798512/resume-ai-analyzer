@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — ResumeAI V2{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Welcome back, {{ user.name }}</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Here is your production AI career readiness dashboard & active resume versions.</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <a href="{{ url_for('builder_new') }}" class="btn btn-primary">+ Build Resume Version</a>
+        <a href="{{ url_for('upload') }}" class="btn btn-secondary">Upload PDF</a>
+    </div>
+</div>
+
+{% if latest_analysis or versions %}
+<div class="metrics-grid">
+    <div class="metric-card" style="border-top: 4px solid var(--primary);">
+        <div class="metric-title">Resume Score</div>
+        <div class="metric-value">{{ latest_analysis.resume_score if latest_analysis else '85' }}/100</div>
+        <div class="metric-sub">ATS Compatibility Index</div>
+    </div>
+
+    <div class="metric-card" style="border-top: 4px solid var(--success);">
+        <div class="metric-title">Hybrid Job Match</div>
+        <div class="metric-value">
+            {% if latest_analysis and latest_analysis.job_match_score is not none %}
+                {{ latest_analysis.job_match_score }}%
+            {% else %}
+                N/A
+            {% endif %}
+        </div>
+        <div class="metric-sub">{{ latest_analysis.job_title if latest_analysis else 'No Job Match Run' }}</div>
+    </div>
+
+    <div class="metric-card" style="border-top: 4px solid var(--accent);">
+        <div class="metric-title">Active Versions</div>
+        <div class="metric-value">{{ versions|length }}</div>
+        <div class="metric-sub">Independent Resumes</div>
+    </div>
+
+    <div class="metric-card" style="border-top: 4px solid var(--warning);">
+        <div class="metric-title">Top Career Fit</div>
+        <div class="metric-value" style="font-size: 1.3rem; line-height: 1.4; padding-top: 0.4rem;">
+            {{ latest_analysis.recommended_role if latest_analysis else 'Python Developer' }}
+        </div>
+        <div class="metric-sub">Highest Match Track</div>
+    </div>
+</div>
+
+<div class="dashboard-sections">
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.2rem; color: var(--secondary);">ResumeAI V2 Platform Suite</h3>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <a href="{{ url_for('builder_list') }}" class="card" style="text-decoration: none; padding: 1.25rem;">
+                <h4 style="color: var(--primary); margin-bottom: 0.4rem;">Resume Builder</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">Manage multi-version resumes & export vector PDFs.</p>
+            </a>
+            <a href="{{ url_for('job_matcher') }}" class="card" style="text-decoration: none; padding: 1.25rem;">
+                <h4 style="color: var(--primary); margin-bottom: 0.4rem;">Hybrid Job Matcher</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">TF-IDF + Sentence Embeddings matching.</p>
+            </a>
+            <a href="{{ url_for('rewriter') }}" class="card" style="text-decoration: none; padding: 1.25rem;">
+                <h4 style="color: var(--primary); margin-bottom: 0.4rem;">AI Rewriter</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">Improve bullet points using action verbs.</p>
+            </a>
+            <a href="{{ url_for('interview_prep_view') }}" class="card" style="text-decoration: none; padding: 1.25rem;">
+                <h4 style="color: var(--primary); margin-bottom: 0.4rem;">AI Interview Prep</h4>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">Technical, Behavioral & DSA question kit.</p>
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="font-size: 1.1rem; color: var(--secondary); margin-bottom: 1rem;">Profile Overview</h3>
+        <p style="font-size: 0.9rem; margin-bottom: 0.4rem;"><strong>Email:</strong> {{ user.email }}</p>
+        <p style="font-size: 0.9rem; margin-bottom: 0.4rem;"><strong>College:</strong> {{ profile.college or 'Not specified' }}</p>
+        <p style="font-size: 0.9rem; margin-bottom: 0.4rem;"><strong>Degree:</strong> {{ profile.degree or 'Not specified' }}</p>
+        <p style="font-size: 0.9rem; margin-bottom: 1rem;"><strong>Graduation:</strong> {{ profile.graduation_year or '2026' }}</p>
+        <a href="{{ url_for('profile') }}" class="btn btn-outline" style="width: 100%; padding: 0.5rem; text-align: center;">Edit Profile</a>
+    </div>
+</div>
+
+{% if versions %}
+<div class="card" style="margin-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="font-size: 1.2rem; color: var(--secondary);">Active Resume Versions</h3>
+        <a href="{{ url_for('compare_view') }}" class="btn btn-secondary" style="padding: 0.35rem 0.8rem; font-size: 0.82rem;">Compare Versions &rarr;</a>
+    </div>
+    <table class="recent-activity-table">
+        <thead>
+            <tr>
+                <th>Version Name</th>
+                <th>Target Job Role</th>
+                <th>Template</th>
+                <th>Created Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in versions %}
+            <tr>
+                <td style="font-weight: 600;">{{ item.version_name }}</td>
+                <td><span class="badge badge-primary">{{ item.target_role }}</span></td>
+                <td>{{ item.template_name or 'ATS Classic' }}</td>
+                <td>{{ item.created_at[:10] }}</td>
+                <td>
+                    <a href="{{ url_for('builder_preview', version_id=item.id) }}" class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.8rem;">Preview PDF</a>
+                    <a href="{{ url_for('optimize_view', version_id=item.id) }}" class="btn btn-outline" style="padding: 0.25rem 0.6rem; font-size: 0.8rem;">Optimize</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% else %}
+<div class="card" style="text-align: center; padding: 4rem 2rem;">
+    <h2 style="color: var(--secondary); margin-bottom: 0.8rem;">Welcome to ResumeAI V2</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem; max-width: 500px; margin-left: auto; margin-right: auto;">
+        Create your first independent resume version or upload a PDF to unlock hybrid AI matching, vector PDF exporting, and interview preparation.
+    </p>
+    <div style="display: flex; justify-content: center; gap: 1rem;">
+        <a href="{{ url_for('builder_new') }}" class="btn btn-primary" style="font-size: 1.05rem; padding: 0.8rem 2rem;">Create Resume Version</a>
+        <a href="{{ url_for('upload') }}" class="btn btn-secondary" style="font-size: 1.05rem; padding: 0.8rem 2rem;">Upload PDF Resume</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis History — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Previous Analyses History</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Review all past resume evaluations, TF-IDF job matches, and career fits.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('upload') }}" class="btn btn-primary">+ Analyze New Resume</a>
+    </div>
+</div>
+
+{% if history %}
+<div class="card">
+    <table class="recent-activity-table">
+        <thead>
+            <tr>
+                <th>Date & Time</th>
+                <th>Resume PDF File</th>
+                <th>Resume Score</th>
+                <th>Tested Job Posting</th>
+                <th>Job Match Score</th>
+                <th>Top Career Fit</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in history %}
+            <tr>
+                <td>{{ item.created_at }}</td>
+                <td style="font-weight: 600;">{{ item.resume_filename }}</td>
+                <td><span class="badge badge-primary">{{ item.resume_score }}/100</span></td>
+                <td>{{ item.job_title or '—' }}</td>
+                <td>
+                    {% if item.job_match_score is not none %}
+                        <span class="badge badge-success">{{ item.job_match_score }}%</span>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>{{ item.recommended_role or 'Software Engineer' }}</td>
+                <td>
+                    <a href="{{ url_for('analysis_detail', analysis_id=item.id) }}" class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.85rem;">View Full Analysis</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 4rem 2rem;">
+    <h2 style="color: var(--secondary); margin-bottom: 0.8rem;">No Saved Analysis History</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">You haven't performed any resume analyses yet.</p>
+    <a href="{{ url_for('upload') }}" class="btn btn-primary">Upload PDF Resume</a>
+</div>
+{% endif %}
+{% endblock %}

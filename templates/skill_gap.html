@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Skill Gap Analysis — ResumeAI{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Skill Gap Analysis</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Target Role: <strong>{{ gap_data.target_role }}</strong> (Readiness: {{ gap_data.readiness_percentage }}%)</p>
+    </div>
+    <div>
+        <a href="{{ url_for('roadmap', analysis_id=analysis_id, target_role=gap_data.target_role) }}" class="btn btn-primary">Generate 10-Week Roadmap &rarr;</a>
+    </div>
+</div>
+
+<!-- Navigation Tabs -->
+<div style="display: flex; gap: 0.5rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+    <a href="{{ url_for('analysis_detail', analysis_id=analysis_id) }}" class="btn btn-secondary">Resume Score & Skills</a>
+    <a href="{{ url_for('career_recommendation', analysis_id=analysis_id) }}" class="btn btn-secondary">Career Recommendations</a>
+    <a href="{{ url_for('skill_gap', analysis_id=analysis_id, target_role=gap_data.target_role) }}" class="btn btn-secondary" style="border-bottom: 3px solid var(--primary); font-weight: 700;">Skill Gap Analysis</a>
+    <a href="{{ url_for('roadmap', analysis_id=analysis_id, target_role=gap_data.target_role) }}" class="btn btn-secondary">10-Week Roadmap</a>
+</div>
+
+<!-- Role Switcher Form -->
+<div class="card" style="margin-bottom: 2rem; padding: 1.25rem;">
+    <form action="{{ url_for('skill_gap', analysis_id=analysis_id) }}" method="GET" style="display: flex; align-items: center; gap: 1rem;">
+        <label for="target_role" style="font-weight: 600; font-size: 0.9rem; white-space: nowrap;">Switch Target Role:</label>
+        <select name="target_role" id="target_role" class="form-input" style="width: auto; flex: 1;" onchange="this.form.submit()">
+            {% for r_name in roles_list %}
+                <option value="{{ r_name }}" {% if r_name == gap_data.target_role %}selected{% endif %}>{{ r_name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-secondary" style="padding: 0.6rem 1.2rem;">Analyze</button>
+    </form>
+</div>
+
+<!-- Readiness Score Summary -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+        <h3 style="font-size: 1.2rem; color: var(--secondary);">Role Readiness Index</h3>
+        <span class="badge {% if gap_data.readiness_percentage >= 75 %}badge-success{% elif gap_data.readiness_percentage >= 50 %}badge-warning{% else %}badge-danger{% endif %}" style="font-size: 0.9rem;">
+            {{ gap_data.readiness_percentage }}% Ready
+        </span>
+    </div>
+    <div class="progress-bar-container" style="height: 14px;">
+        <div class="progress-bar-fill {% if gap_data.readiness_percentage >= 75 %}success{% elif gap_data.readiness_percentage >= 50 %}warning{% else %}danger{% endif %}" style="width: {{ gap_data.readiness_percentage }}%;"></div>
+    </div>
+    <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.75rem;">
+        You have acquired {{ gap_data.total_required - gap_data.missing_count }} of {{ gap_data.total_required }} required competencies for <strong>{{ gap_data.target_role }}</strong>.
+    </p>
+</div>
+
+<!-- Detailed Skill Comparison Table -->
+<div class="card">
+    <h3 style="font-size: 1.2rem; color: var(--secondary); margin-bottom: 1.25rem;">Required Skills Audit & Gap Breakdown</h3>
+
+    <table class="recent-activity-table">
+        <thead>
+            <tr>
+                <th>Required Competency</th>
+                <th>Current Status Level</th>
+                <th>Proficiency Metric</th>
+                <th>Action Recommendation</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in gap_data.skill_breakdown %}
+            <tr>
+                <td style="font-weight: 600;">{{ item.skill }}</td>
+                <td>
+                    {% if item.level == 'Strong' %}
+                        <span class="badge badge-success">✓ Strong</span>
+                    {% elif item.level == 'Intermediate' %}
+                        <span class="badge badge-primary">⚡ Intermediate</span>
+                    {% else %}
+                        <span class="badge badge-danger">✗ Missing</span>
+                    {% endif %}
+                </td>
+                <td style="width: 250px;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="progress-bar-container" style="flex: 1;">
+                            <div class="progress-bar-fill {% if item.level == 'Strong' %}success{% elif item.level == 'Intermediate' %}primary{% else %}danger{% endif %}" style="width: {{ item.percentage }}%;"></div>
+                        </div>
+                        <span style="font-size: 0.85rem; font-weight: 600; width: 45px;">{{ item.percentage }}%</span>
+                    </div>
+                </td>
+                <td style="font-size: 0.88rem; color: var(--text-muted);">
+                    {% if item.level == 'Strong' %}
+                        Highlight projects utilizing {{ item.skill }} on resume.
+                    {% elif item.level == 'Intermediate' %}
+                        Expand on intermediate practical tasks.
+                    {% else %}
+                        Priority skill to learn in upcoming roadmap.
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

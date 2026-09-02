@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}413 File Too Large — ResumeAI{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 4rem auto; text-align: center; padding: 3rem;">
+    <h1 style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;">413</h1>
+    <h2 style="color: var(--secondary); margin-bottom: 1rem;">Uploaded File Too Large</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">The uploaded PDF file exceeds the maximum allowed upload limit of 5 MB.</p>
+    <a href="{{ url_for('upload') }}" class="btn btn-primary">Try Uploading Smaller File</a>
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}ResumeAI — AI-Powered Resume Analyzer & Job Matcher{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 4rem 1rem; max-width: 900px; margin: 0 auto;">
+    <span class="badge badge-primary" style="font-size: 0.9rem; margin-bottom: 1.5rem; padding: 0.4rem 1rem;">Portfolio-Grade AI SaaS Platform</span>
+    <h1 style="font-size: 3rem; font-weight: 800; color: var(--secondary); margin-bottom: 1rem; line-height: 1.2;">
+        Make Your Resume Job-Ready with Explainable AI
+    </h1>
+    <p style="font-size: 1.25rem; color: var(--text-muted); margin-bottom: 2.5rem; line-height: 1.6;">
+        Analyze your resume PDF, extract technical & soft skills, detect missing sections, calculate TF-IDF job description compatibility, and unlock a personalized 10-week learning roadmap.
+    </p>
+
+    <div class="hero-buttons" style="display: flex; justify-content: center; gap: 1rem;">
+        {% if session.get('user_id') %}
+            <a href="{{ url_for('upload') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.9rem 2rem;">Analyze My Resume</a>
+            <a href="{{ url_for('job_matcher') }}" class="btn btn-secondary" style="font-size: 1.1rem; padding: 0.9rem 2rem;">Try Job Matcher</a>
+        {% else %}
+            <a href="{{ url_for('register') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.9rem 2rem;">Get Started Free</a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary" style="font-size: 1.1rem; padding: 0.9rem 2rem;">Sign In</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Key Features -->
+<div style="margin-top: 3rem; margin-bottom: 4rem;">
+    <h2 style="text-align: center; font-size: 2rem; color: var(--secondary); margin-bottom: 2.5rem;">Engineered with Real NLP & Machine Learning</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+        <div class="card">
+            <h3 style="font-size: 1.2rem; color: var(--primary); margin-bottom: 0.5rem;">PDF Resume Parsing</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Extracted using <code>pypdf</code> text stream processing with support for complex multi-column resumes.</p>
+        </div>
+        <div class="card">
+            <h3 style="font-size: 1.2rem; color: var(--primary); margin-bottom: 0.5rem;">Categorized Skill Extraction</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Detects Programming, Web, Database, AI/ML, CS Fundamentals, Tools, and Soft Skills using exact dictionary lookup.</p>
+        </div>
+        <div class="card">
+            <h3 style="font-size: 1.2rem; color: var(--primary); margin-bottom: 0.5rem;">TF-IDF Job Description Matching</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Uses <code>scikit-learn</code> TF-IDF Vectorization & Cosine Similarity to compare your resume against target Job Descriptions.</p>
+        </div>
+        <div class="card">
+            <h3 style="font-size: 1.2rem; color: var(--primary); margin-bottom: 0.5rem;">Career Role Fit</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Evaluates compatibility across 9 software engineering & AI career tracks with dynamic explanations.</p>
+        </div>
+        <div class="card">
+            <h3 style="font-size: 1.2rem; color: var(--primary); margin-bottom: 0.5rem;">Prioritized Skill Gaps</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Classifies missing skills into HIGH, MEDIUM, and LOW priority based on job description term frequency.</p>
+        </div>
+        <div class="card">
+            <h3 style="font-size: 1.2rem; color: var(--primary); margin-bottom: 0.5rem;">10-Week Learning Roadmap</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Generates a week-by-week actionable roadmap targeting your exact missing skill gaps.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Workflow Step Cards -->
+<div style="background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 3rem 2rem; text-align: center; margin-bottom: 3rem;">
+    <h2 style="font-size: 1.8rem; color: var(--secondary); margin-bottom: 2rem;">How ResumeAI Works</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div style="padding: 1rem;">
+            <div style="background-color: var(--primary-light); color: var(--primary); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; margin: 0 auto 1rem auto;">1</div>
+            <h4 style="margin-bottom: 0.5rem;">Upload Resume</h4>
+            <p style="font-size: 0.88rem; color: var(--text-muted);">Upload your PDF resume file safely.</p>
+        </div>
+        <div style="padding: 1rem;">
+            <div style="background-color: var(--primary-light); color: var(--primary); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; margin: 0 auto 1rem auto;">2</div>
+            <h4 style="margin-bottom: 0.5rem;">AI Extraction</h4>
+            <p style="font-size: 0.88rem; color: var(--text-muted);">Extract text, skills, contact info & sections.</p>
+        </div>
+        <div style="padding: 1rem;">
+            <div style="background-color: var(--primary-light); color: var(--primary); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; margin: 0 auto 1rem auto;">3</div>
+            <h4 style="margin-bottom: 0.5rem;">Job Description Match</h4>
+            <p style="font-size: 0.88rem; color: var(--text-muted);">Compare against job postings using TF-IDF.</p>
+        </div>
+        <div style="padding: 1rem;">
+            <div style="background-color: var(--primary-light); color: var(--primary); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; margin: 0 auto 1rem auto;">4</div>
+            <h4 style="margin-bottom: 0.5rem;">Actionable Roadmap</h4>
+            <p style="font-size: 0.88rem; color: var(--text-muted);">Get a 10-week step-by-step improvement plan.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

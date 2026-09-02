@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ResumeAI — Production AI Career Platform{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/upload.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/analysis.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/matcher.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/builder.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{{ url_for('index') }}" class="nav-brand">
+            <span>ResumeAI</span>
+            <span class="brand-badge">PRO V2</span>
+        </a>
+        <ul class="nav-links">
+            {% if session.get('user_id') %}
+                <li><a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a></li>
+                <li><a href="{{ url_for('builder_list') }}" class="{% if request.endpoint in ['builder_list', 'builder_new', 'builder_edit'] %}active{% endif %}">Resume Builder</a></li>
+                <li><a href="{{ url_for('upload') }}" class="{% if request.endpoint == 'upload' %}active{% endif %}">Upload Resume</a></li>
+                <li><a href="{{ url_for('job_matcher') }}" class="{% if request.endpoint == 'job_matcher' %}active{% endif %}">Job Matcher</a></li>
+                <li><a href="{{ url_for('rewriter') }}" class="{% if request.endpoint == 'rewriter' %}active{% endif %}">AI Rewriter</a></li>
+                <li><a href="{{ url_for('interview_prep_view') }}" class="{% if request.endpoint == 'interview_prep_view' %}active{% endif %}">Interview Prep</a></li>
+                <li><a href="{{ url_for('history') }}" class="{% if request.endpoint == 'history' %}active{% endif %}">History</a></li>
+                <li><a href="{{ url_for('profile') }}" class="{% if request.endpoint == 'profile' %}active{% endif %}">Profile</a></li>
+                <li><a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">About</a></li>
+                <li><a href="{{ url_for('logout') }}" class="btn btn-secondary" style="padding: 0.4rem 0.9rem;">Logout</a></li>
+            {% else %}
+                <li><a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
+                <li><a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">About & Architecture</a></li>
+                <li><a href="{{ url_for('login') }}">Login</a></li>
+                <li><a href="{{ url_for('register') }}" class="btn btn-nav-primary">Get Started</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-container">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+
+        <div class="disclaimer-banner">
+            <strong>Disclaimer:</strong> ResumeAI V2 provides automated resume quality analysis, hybrid TF-IDF + semantic vector matching, and career preparation tools for educational purposes. Scores are estimates and should not be treated as official ATS certification or guarantees of employment.
+        </div>
+    </div>
+
+    <!-- Floating AI Career Coach Chatbot Widget -->
+    <div id="ai-chat-widget" style="position: fixed; bottom: 25px; right: 25px; z-index: 9999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <!-- Toggle Button -->
+        <button id="ai-chat-toggle" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; border-radius: 50px; padding: 12px 20px; font-weight: 700; font-size: 0.95rem; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s;" onclick="toggleAiChat()">
+            <span style="font-size: 1.2rem;">🤖</span>
+            <span>AI Career Coach</span>
+            <span style="background: rgba(255,255,255,0.2); font-size: 0.7rem; padding: 2px 6px; border-radius: 10px; margin-left: 4px;">
+                {% if gemini_active %}⚡ Gemini AI{% else %}Local{% endif %}
+            </span>
+        </button>
+
+        <!-- Chat Box Drawer -->
+        <div id="ai-chat-box" style="display: none; width: 360px; height: 480px; background: white; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.18); border: 1px solid var(--border); flex-direction: column; overflow: hidden; position: absolute; bottom: 65px; right: 0; animation: slideUp 0.3s ease-out;">
+            <!-- Chat Header -->
+            <div style="background: #0f172a; color: white; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 1.2rem;">🤖</span>
+                    <div>
+                        <strong style="font-size: 0.95rem; display: block; line-height: 1.2;">ResumeAI Career Coach</strong>
+                        <span style="font-size: 0.75rem; color: #94a3b8;">
+                            {% if gemini_active %}🟢 Powered by Google Gemini AI{% else %}🟡 Add GEMINI_API_KEY for live LLM{% endif %}
+                        </span>
+                    </div>
+                </div>
+                <button onclick="toggleAiChat()" style="background: none; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer;">✕</button>
+            </div>
+
+            <!-- Messages Area -->
+            <div id="ai-chat-messages" style="flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 0.88rem; background: #f8fafc;">
+                <div style="background: white; border: 1px solid #e2e8f0; padding: 10px 14px; border-radius: 12px; max-width: 85%; align-self: flex-start; color: #1e293b; line-height: 1.4;">
+                    👋 Hi there! I'm your <strong>ResumeAI Career Coach</strong>. Ask me anything about improving your resume, preparing for technical interviews, or optimizing your job applications!
+                </div>
+            </div>
+
+            <!-- Input Bar -->
+            <div style="padding: 12px; background: white; border-top: 1px solid #e2e8f0; display: flex; gap: 8px;">
+                <input type="text" id="ai-chat-input" placeholder="Ask career coach a question..." style="flex: 1; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 20px; font-size: 0.88rem; outline: none;" onkeypress="if(event.key==='Enter') sendAiMessage()">
+                <button onclick="sendAiMessage()" style="background: var(--primary); color: white; border: none; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem;">➔</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chatHistory = [];
+        function toggleAiChat() {
+            const box = document.getElementById('ai-chat-box');
+            box.style.display = (box.style.display === 'none' || box.style.display === '') ? 'flex' : 'none';
+        }
+
+        async function sendAiMessage() {
+            const input = document.getElementById('ai-chat-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const msgsDiv = document.getElementById('ai-chat-messages');
+
+            // User Message Bubble
+            const uDiv = document.createElement('div');
+            uDiv.style.cssText = "background: var(--primary); color: white; padding: 10px 14px; border-radius: 12px; max-width: 85%; align-self: flex-end; line-height: 1.4;";
+            uDiv.innerText = msg;
+            msgsDiv.appendChild(uDiv);
+
+            input.value = '';
+            msgsDiv.scrollTop = msgsDiv.scrollHeight;
+
+            // Typing Indicator
+            const tDiv = document.createElement('div');
+            tDiv.id = 'ai-typing';
+            tDiv.style.cssText = "background: white; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 12px; max-width: 85%; align-self: flex-start; color: #64748b; font-style: italic;";
+            tDiv.innerText = "Coach is thinking...";
+            msgsDiv.appendChild(tDiv);
+            msgsDiv.scrollTop = msgsDiv.scrollHeight;
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: msg, history: chatHistory})
+                });
+                const data = await res.json();
+                
+                tDiv.remove();
+
+                // Bot Response Bubble
+                const bDiv = document.createElement('div');
+                bDiv.style.cssText = "background: white; border: 1px solid #e2e8f0; padding: 10px 14px; border-radius: 12px; max-width: 88%; align-self: flex-start; color: #1e293b; line-height: 1.45; white-space: pre-wrap;";
+                bDiv.innerText = data.response || "No response received.";
+                msgsDiv.appendChild(bDiv);
+
+                chatHistory.push({role: 'user', content: msg});
+                chatHistory.push({role: 'model', content: data.response});
+            } catch (err) {
+                tDiv.remove();
+                const errDiv = document.createElement('div');
+                errDiv.style.cssText = "background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px; border-radius: 12px; align-self: flex-start;";
+                errDiv.innerText = "Network error. Please try again.";
+                msgsDiv.appendChild(errDiv);
+            }
+            msgsDiv.scrollTop = msgsDiv.scrollHeight;
+        }
+    </script>
+
+    <footer class="footer">
+        <p>&copy; 2026 ResumeAI V2 — Production-Ready AI Career Platform. Built with Python 3.13, Flask, Jinja2, scikit-learn, Google Gemini AI, ReportLab, and SQLite.</p>
+    </footer>
+</body>
+</html>
+
