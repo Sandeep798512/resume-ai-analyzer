@@ -123,6 +123,48 @@ a:hover {
     flex: 1;
 }
 
+/* Forms & Inputs */
+.form-group {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--secondary);
+    margin-bottom: 0.5rem;
+    width: 100%;
+}
+
+.form-input, select.form-input, textarea.form-input {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    outline: none;
+    box-sizing: border-box;
+}
+
+.form-input:focus, select.form-input:focus, textarea.form-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+textarea.form-input {
+    resize: vertical;
+    min-height: 120px;
+}
+
 /* Utility Cards & Elements */
 .card {
     background: var(--surface);
