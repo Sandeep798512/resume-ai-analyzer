@@ -977,6 +977,26 @@ def profile():
 def about():
     return render_template('about.html')
 
+@app.route('/api/chat', methods=['POST'])
+@csrf.exempt
+def api_chat():
+    """
+    Asynchronous REST endpoint for floating AI Career Coach Chatbot.
+    """
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+        user_message = data.get('message', '').strip()
+        history = data.get('history', [])
+
+        if not user_message:
+            return jsonify({'response': 'Hello! How can I help you today with your resume or interview preparation?'})
+
+        bot_reply = chat_career_coach_ai(user_message, history)
+        return jsonify({'response': bot_reply})
+    except Exception as e:
+        logging.warning(f"Error in /api/chat: {e}")
+        return jsonify({'response': '👋 Hello! I am your AI Career Coach. How can I help you today with your resume building or interview prep?'})
+
 # --- ERROR HANDLERS ---
 
 @app.errorhandler(400)

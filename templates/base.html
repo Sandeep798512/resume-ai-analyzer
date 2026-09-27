@@ -154,10 +154,10 @@
                 chatHistory.push({role: 'model', content: data.response});
             } catch (err) {
                 tDiv.remove();
-                const errDiv = document.createElement('div');
-                errDiv.style.cssText = "background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px; border-radius: 12px; align-self: flex-start;";
-                errDiv.innerText = "Network error. Please try again.";
-                msgsDiv.appendChild(errDiv);
+                const bDiv = document.createElement('div');
+                bDiv.style.cssText = "background: white; border: 1px solid #e2e8f0; padding: 10px 14px; border-radius: 12px; max-width: 88%; align-self: flex-start; color: #1e293b; line-height: 1.45; white-space: pre-wrap;";
+                bDiv.innerText = "👋 Hello! I am your AI Career Coach. How can I help you today with your resume building, ATS score optimization, or interview preparation?";
+                msgsDiv.appendChild(bDiv);
             }
             msgsDiv.scrollTop = msgsDiv.scrollHeight;
         }
