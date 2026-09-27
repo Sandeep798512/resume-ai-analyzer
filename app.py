@@ -793,18 +793,24 @@ def generate_cover_letter_route():
     return jsonify({'success': False, 'error': 'Failed to generate cover letter. Please verify your GEMINI_API_KEY.'})
 
 @app.route('/api/chat', methods=['POST'])
-@login_required
 @csrf.exempt
-def api_chat_route():
-    data = request.get_json(silent=True) or {}
-    user_msg = data.get('message', '').strip()
-    history = data.get('history', [])
+def api_chat():
+    """
+    Asynchronous REST endpoint for floating AI Career Coach Chatbot (Public & Logged-in friendly).
+    """
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+        user_msg = data.get('message', '').strip()
+        history = data.get('history', [])
 
-    if not user_msg:
-        return jsonify({'response': 'Please enter a valid question!'})
+        if not user_msg:
+            return jsonify({'response': '👋 Hello! I am your AI Career Coach. Ask me anything about your resume, ATS scores, or technical interviews!'})
 
-    resp_text = chat_career_coach_ai(user_msg, history)
-    return jsonify({'response': resp_text, 'gemini_active': is_gemini_available()})
+        resp_text = chat_career_coach_ai(user_msg, history)
+        return jsonify({'response': resp_text, 'gemini_active': is_gemini_available()})
+    except Exception as e:
+        logging.warning(f"Error in /api/chat: {e}")
+        return jsonify({'response': '👋 Hello! I am your AI Career Coach. How can I help you today with your resume building or interview prep?'})
 
 # --- CAREER & ROADMAP ROUTES ---
 
@@ -976,26 +982,6 @@ def profile():
 @app.route('/about')
 def about():
     return render_template('about.html')
-
-@app.route('/api/chat', methods=['POST'])
-@csrf.exempt
-def api_chat():
-    """
-    Asynchronous REST endpoint for floating AI Career Coach Chatbot.
-    """
-    try:
-        data = request.get_json(force=True, silent=True) or {}
-        user_message = data.get('message', '').strip()
-        history = data.get('history', [])
-
-        if not user_message:
-            return jsonify({'response': 'Hello! How can I help you today with your resume or interview preparation?'})
-
-        bot_reply = chat_career_coach_ai(user_message, history)
-        return jsonify({'response': bot_reply})
-    except Exception as e:
-        logging.warning(f"Error in /api/chat: {e}")
-        return jsonify({'response': '👋 Hello! I am your AI Career Coach. How can I help you today with your resume building or interview prep?'})
 
 # --- ERROR HANDLERS ---
 
